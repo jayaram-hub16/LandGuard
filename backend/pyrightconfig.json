@@ -1,0 +1,21 @@
+{
+  "venvPath": ".",
+  "venv": "venv313",
+  "pythonVersion": "3.13",
+  "pythonPlatform": "Windows",
+  "include": [
+    "app",
+    "scripts",
+    "tests",
+    "run.py",
+    "setup_admin.py",
+    "smoke_test.py",
+    "syntax_check.py"
+  ],
+  "exclude": [
+    "venv",
+    "venv313",
+    "venv_py315_bak"
+  ]
+}
+

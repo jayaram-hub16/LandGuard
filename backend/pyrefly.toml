@@ -1,0 +1,23 @@
+python-interpreter-path = "venv313/Scripts/python.exe"
+python-version = "3.13"
+
+project-includes = [
+    "app/**/*.py",
+    "scripts/*.py",
+    "tests/*.py",
+    "run.py",
+    "setup_admin.py",
+    "smoke_test.py",
+    "syntax_check.py"
+]
+
+project-excludes = [
+    "venv",
+    "venv313",
+    "venv_py315_bak"
+]
+
+[errors]
+unexpected-keyword = false
+missing-attribute = false
+untyped-import = false
