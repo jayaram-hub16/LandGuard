@@ -78,11 +78,13 @@ def create_app(config_name=None):
     # In production Flask serves the Vite-built dist/ as static files so that
     # a single Render web service handles both the API and the React SPA.
     # In development, Vite's dev-server + proxy handles this instead.
-    _frontend_dist = os.path.join(
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-        "..", "frontend", "dist"
-    )
-    _frontend_dist = os.path.normpath(_frontend_dist)
+    _backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    _frontend_dist = os.path.normpath(os.path.join(_backend_dir, "..", "frontend", "dist"))
+    if not os.path.isdir(_frontend_dist):
+        _alt_dist = os.path.normpath(os.path.join(os.getcwd(), "frontend", "dist"))
+        if os.path.isdir(_alt_dist):
+            _frontend_dist = _alt_dist
+
     if os.path.isdir(_frontend_dist):
         from flask import send_from_directory
 
@@ -96,7 +98,7 @@ def create_app(config_name=None):
             full = os.path.join(_frontend_dist, path)
             if path and os.path.exists(full):
                 return send_from_directory(_frontend_dist, path)
-            # SPA fallback: serve index.html for all unknown routes
+            # SPA fallback: serve index.html for all unknown client-side routes
             return send_from_directory(_frontend_dist, "index.html")
 
     # Import models to register with SQLAlchemy, then ensure all tables exist.
@@ -118,17 +120,30 @@ def create_app(config_name=None):
 
 
 def _configure_logging(app):
-    """Configure application logging."""
+    """Configure application logging for cloud stdout and optional file."""
+    import sys
+    log_format = logging.Formatter(
+        "%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]"
+    )
+    # Cloud stdout handler (Render log stream)
+    stdout_handler = logging.StreamHandler(sys.stdout)
+    stdout_handler.setFormatter(log_format)
+    stdout_handler.setLevel(logging.INFO)
+    app.logger.addHandler(stdout_handler)
+    app.logger.setLevel(logging.INFO)
+
     if not app.debug:
-        if not os.path.exists("logs"):
-            os.mkdir("logs")
-        handler = RotatingFileHandler(
-            "logs/landguard.log", maxBytes=10_485_760, backupCount=10
-        )
-        handler.setFormatter(logging.Formatter(
-            "%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]"
-        ))
-        handler.setLevel(logging.INFO)
-        app.logger.addHandler(handler)
-        app.logger.setLevel(logging.INFO)
-        app.logger.info("LandGuard startup")
+        try:
+            base_dir = app.config.get("BASE_DIR", os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            logs_dir = os.path.join(base_dir, "logs")
+            os.makedirs(logs_dir, exist_ok=True)
+            file_handler = RotatingFileHandler(
+                os.path.join(logs_dir, "landguard.log"), maxBytes=10_485_760, backupCount=10
+            )
+            file_handler.setFormatter(log_format)
+            file_handler.setLevel(logging.INFO)
+            app.logger.addHandler(file_handler)
+        except Exception:
+            pass  # stdout is primary in production containers
+
+    app.logger.info("LandGuard startup")

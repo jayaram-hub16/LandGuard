@@ -7,7 +7,7 @@
 #   2. In Render dashboard → New → Blueprint → connect your GitHub repo.
 #   3. Render reads this file, provisions the web service + PostgreSQL DB.
 #   4. After first deploy, run via Render Shell:
-#        cd backend && flask create-admin
+#        flask create-admin
 ################################################################################
 
 services:
@@ -16,10 +16,11 @@ services:
     runtime: python
     region: singapore
     plan: free
-    # rootDir NOT set — commands run from repo root
     buildCommand: "bash build.sh"
-    startCommand: "cd backend && gunicorn run:app --workers 2 --worker-class gthread --threads 4 --bind 0.0.0.0:$PORT --timeout 120 --log-level info"
+    startCommand: "gunicorn run:app --workers 2 --worker-class gthread --threads 4 --bind 0.0.0.0:$PORT --timeout 120 --log-level info"
     envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.10
       - key: FLASK_ENV
         value: production
       - key: SECRET_KEY

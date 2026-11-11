@@ -53,7 +53,7 @@ temp/
 
 # ── Node / Frontend ───────────────────────────────────────────────
 node_modules/
-frontend/dist/
+# frontend/dist/ is included so Render serves production SPA even without Node build step
 frontend/.vite/
 .eslintcache
 
