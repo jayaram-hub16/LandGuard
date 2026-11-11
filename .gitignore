@@ -1,0 +1,81 @@
+# ── Python / Backend ─────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+
+# Virtual environments (all named variants)
+venv/
+venv*/
+.venv/
+.venv*/
+env/
+ENV/
+.env/
+venv313/
+venv_py315_bak/
+
+# Environment files — NEVER COMMIT REAL SECRETS
+.env
+.env.local
+.env.production
+.env.setup
+*.local
+
+# Database files — NEVER COMMIT (use Render PostgreSQL in production)
+*.db
+*.sqlite
+*.sqlite3
+*.db-shm
+*.db-wal
+*.db.bak
+*.db.bak2
+*.db.diag_bak
+landguard_dev_backup_*.db
+backend/instance/
+
+# Logs
+logs/
+*.log
+
+# Uploads and generated outputs
+uploads/
+reports_output/
+temp/
+
+# ── Node / Frontend ───────────────────────────────────────────────
+node_modules/
+frontend/dist/
+frontend/.vite/
+.eslintcache
+
+# ── IDE / OS ─────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ── Migrations (include, not exclude) ────────────────────────────
+# migrations/ is tracked; only exclude auto-generated pyc files
+
+# ── Testing ──────────────────────────────────────────────────────
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# ── Deployment ───────────────────────────────────────────────────
+.render/
+render.yaml.secret
+

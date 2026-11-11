@@ -1,0 +1,25 @@
+python-interpreter-path = "backend/venv313/Scripts/python.exe"
+python-version = "3.13"
+search-path = ["backend"]
+
+project-includes = [
+    "backend/app/**/*.py",
+    "backend/scripts/*.py",
+    "backend/tests/*.py",
+    "backend/run.py",
+    "backend/setup_admin.py",
+    "backend/smoke_test.py",
+    "backend/syntax_check.py"
+]
+
+project-excludes = [
+    "backend/venv",
+    "backend/venv313",
+    "backend/venv_py315_bak",
+    "frontend"
+]
+
+[errors]
+unexpected-keyword = false
+missing-attribute = false
+untyped-import = false
