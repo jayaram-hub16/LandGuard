@@ -17,7 +17,7 @@ export default function LoginPage() {
     setError('')
     setLoading(true)
     try {
-      await login(form.email, form.password)
+      await login(form.email.trim(), form.password.trim())
       navigate('/dashboard')
     } catch (err: unknown) {
       const axiosErr = err as {
