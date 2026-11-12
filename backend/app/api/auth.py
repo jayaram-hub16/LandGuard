@@ -1,6 +1,7 @@
 """
 Auth API Blueprint — POST /api/auth/*
 """
+import os
 import re
 import time
 from datetime import datetime, timezone
@@ -136,3 +137,62 @@ def change_password():
     log_action(user.id, "PASSWORD_CHANGED", "User", user.id)
     db.session.commit()
     return jsonify({"message": "Password changed successfully."})
+
+
+@auth_bp.route("/setup-admin", methods=["POST"])
+def setup_admin():
+    """
+    Direct admin bootstrap/update endpoint for environments without interactive shell (e.g. Render free tier).
+    Requires matching ADMIN_SETUP_KEY (defaults to 'landguard-setup-2026' or configured env var).
+    """
+    data = request.get_json(silent=True) or {}
+    email = (data.get("email") or "").strip().lower()
+    password = data.get("password") or ""
+    name = (data.get("name") or "Jayaram").strip()
+    key = (data.get("setup_key") or "").strip()
+
+    expected_key = os.environ.get("ADMIN_SETUP_KEY", "landguard-setup-2026")
+    if not key or key != expected_key:
+        return jsonify({"error": "Unauthorized: invalid or missing setup_key."}), 403
+
+    if not email or "@" not in email:
+        return jsonify({"error": "Valid email address required."}), 422
+    if len(password) < 8:
+        return jsonify({"error": "Password must be at least 8 characters."}), 422
+
+    try:
+        existing = User.query.filter_by(email=email).first()
+        if existing:
+            existing.password_hash = hash_password(password)
+            existing.full_name = name
+            existing.role = UserRole.ADMIN
+            existing.status = UserStatus.ACTIVE
+            db.session.commit()
+            log_action(existing.id, "ADMIN_ACCOUNT_SETUP_UPDATE", "User", existing.id, {"email": email})
+            return jsonify({
+                "status": "success",
+                "message": f"Admin account updated successfully for {email}",
+                "email": email,
+                "role": "ADMIN"
+            }), 200
+        else:
+            admin = User(
+                email=email,
+                password_hash=hash_password(password),
+                full_name=name,
+                role=UserRole.ADMIN,
+                status=UserStatus.ACTIVE,
+            )
+            db.session.add(admin)
+            db.session.commit()
+            log_action(admin.id, "ADMIN_ACCOUNT_SETUP_CREATE", "User", admin.id, {"email": email})
+            return jsonify({
+                "status": "success",
+                "message": f"Admin account created successfully for {email}",
+                "email": email,
+                "role": "ADMIN"
+            }), 201
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"Failed to setup admin account: {str(e)}"}), 500
+

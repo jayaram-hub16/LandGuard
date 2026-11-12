@@ -131,6 +131,50 @@ def create_app(config_name=None):
         from app.models.ai_model_run import AIModelRun    # noqa
         db.create_all()   # Additive — never drops existing tables or data
 
+        # Optional admin bootstrap on startup if configured via environment variables
+        admin_bootstrap_email = (
+            os.environ.get("ADMIN_BOOTSTRAP_EMAIL")
+            or app.config.get("ADMIN_BOOTSTRAP_EMAIL")
+            or ""
+        ).strip()
+        admin_bootstrap_pwd = (
+            os.environ.get("ADMIN_BOOTSTRAP_PASSWORD")
+            or app.config.get("ADMIN_BOOTSTRAP_PASSWORD")
+            or ""
+        ).strip()
+        admin_bootstrap_name = (
+            os.environ.get("ADMIN_BOOTSTRAP_NAME")
+            or "Jayaram"
+        ).strip()
+
+        if admin_bootstrap_email and admin_bootstrap_pwd and len(admin_bootstrap_pwd) >= 8:
+            try:
+                from app.models import User, UserRole, UserStatus
+                from app.utils.auth import hash_password
+
+                existing_admin = User.query.filter_by(email=admin_bootstrap_email).first()
+                if existing_admin:
+                    existing_admin.password_hash = hash_password(admin_bootstrap_pwd)
+                    existing_admin.full_name = admin_bootstrap_name
+                    existing_admin.role = UserRole.ADMIN
+                    existing_admin.status = UserStatus.ACTIVE
+                    db.session.commit()
+                    app.logger.info("Admin bootstrap: updated %s", admin_bootstrap_email)
+                else:
+                    new_admin = User(
+                        email=admin_bootstrap_email,
+                        password_hash=hash_password(admin_bootstrap_pwd),
+                        full_name=admin_bootstrap_name,
+                        role=UserRole.ADMIN,
+                        status=UserStatus.ACTIVE,
+                    )
+                    db.session.add(new_admin)
+                    db.session.commit()
+                    app.logger.info("Admin bootstrap: created %s", admin_bootstrap_email)
+            except Exception as exc:
+                db.session.rollback()
+                app.logger.error("Admin bootstrap error: %s", str(exc))
+
     return app
 
 
