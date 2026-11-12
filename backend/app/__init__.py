@@ -151,3 +151,16 @@ def _configure_logging(app):
             pass  # stdout is primary in production containers
 
     app.logger.info("LandGuard startup")
+
+
+def __getattr__(name):
+    """
+    Support WSGI servers (Gunicorn) configured with 'gunicorn app:app'.
+    Lazily creates and returns the Flask application instance on attribute access.
+    """
+    if name == "app":
+        global _lazy_app
+        if "_lazy_app" not in globals():
+            _lazy_app = create_app()
+        return _lazy_app
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
