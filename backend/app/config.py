@@ -62,7 +62,12 @@ class ProductionConfig(BaseConfig):
         _db_url = _db_url.replace("postgres://", "postgresql://", 1)
     SQLALCHEMY_DATABASE_URI = _db_url
     CORS_ORIGINS = [
-        o.strip() for o in os.environ.get("FRONTEND_URL", "http://localhost:5173").split(",") if o.strip()
+        o.strip()
+        for o in os.environ.get(
+            "CORS_ORIGINS",
+            os.environ.get("FRONTEND_URL", "https://landguard.vercel.app,http://localhost:5173")
+        ).split(",")
+        if o.strip()
     ]
 
 
