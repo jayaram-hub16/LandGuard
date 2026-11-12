@@ -73,15 +73,28 @@ def create_app(config_name=None):
     app.register_blueprint(notifications_bp,  url_prefix="/api/notifications")
     app.register_blueprint(ai_models_bp,     url_prefix="/api/ai-models")
 
+    # Root homepage / health-check route
+    @app.route("/")
+    def index():
+        from flask import jsonify
+        return jsonify({
+            "status": "healthy",
+            "application": "LandGuard",
+            "message": "LandGuard backend is running successfully"
+        }), 200
+
+    # Favicon route returning 204 No Content
+    @app.route("/favicon.ico")
+    def favicon():
+        from flask import Response
+        return Response(status=204)
+
     # Health check
     @app.route("/api/health")
     def health():
         return {"status": "ok", "service": "LandGuard API", "version": "1.0.0"}
 
-    # ── Serve React frontend in production ──────────────────────────────────
-    # In production Flask serves the Vite-built dist/ as static files so that
-    # a single Render web service handles both the API and the React SPA.
-    # In development, Vite's dev-server + proxy handles this instead.
+    # ── Serve optional static frontend assets (if dist/ exists) ─────────────
     _backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     _frontend_dist = os.path.normpath(os.path.join(_backend_dir, "..", "frontend", "dist"))
     if not os.path.isdir(_frontend_dist):
@@ -92,18 +105,16 @@ def create_app(config_name=None):
     if os.path.isdir(_frontend_dist):
         from flask import send_from_directory
 
-        @app.route("/", defaults={"path": ""})
         @app.route("/<path:path>")
-        def serve_frontend(path):
-            # Let API routes fall through to their own blueprints
+        def serve_frontend_assets(path):
             if path.startswith("api/"):
                 from flask import jsonify
                 return jsonify({"error": "Not found"}), 404
             full = os.path.join(_frontend_dist, path)
-            if path and os.path.exists(full):
+            if os.path.exists(full):
                 return send_from_directory(_frontend_dist, path)
-            # SPA fallback: serve index.html for all unknown client-side routes
-            return send_from_directory(_frontend_dist, "index.html")
+            from flask import jsonify
+            return jsonify({"error": "Not found"}), 404
 
     # Import models to register with SQLAlchemy, then ensure all tables exist.
     # db.create_all() is idempotent: it skips tables that already exist, so
