@@ -32,7 +32,11 @@ def create_app(config_name=None):
     login_manager.init_app(app)
 
     # CORS configuration
-    allowed_origins = app.config.get("CORS_ORIGINS", ["http://localhost:5173"])
+    import re
+    configured_origins = app.config.get("CORS_ORIGINS", ["http://localhost:5173"])
+    allowed_origins = [o for o in configured_origins if isinstance(o, str) and o]
+    # Automatically permit Vercel domains (*.vercel.app)
+    allowed_origins.append(re.compile(r"^https://[a-zA-Z0-9._-]+\.vercel\.app$"))
     CORS(app, origins=allowed_origins, supports_credentials=True,
          allow_headers=["Content-Type", "Authorization"],
          methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"])

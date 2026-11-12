@@ -1,0 +1,10 @@
+{
+  "name": "landguard",
+  "version": "1.0.0",
+  "private": true,
+  "description": "LandGuard — GIS Land Encroachment Detection Application",
+  "scripts": {
+    "build": "npm --prefix frontend install && npm --prefix frontend run build",
+    "dev": "npm --prefix frontend run dev"
+  }
+}
