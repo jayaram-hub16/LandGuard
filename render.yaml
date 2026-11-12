@@ -20,7 +20,7 @@ services:
     startCommand: "gunicorn run:app --workers 2 --worker-class gthread --threads 4 --bind 0.0.0.0:$PORT --timeout 120 --log-level info"
     envVars:
       - key: PYTHON_VERSION
-        value: 3.11.10
+        value: 3.11.9
       - key: FLASK_ENV
         value: production
       - key: SECRET_KEY
@@ -32,7 +32,7 @@ services:
           name: landguard-db
           property: connectionString
       - key: FRONTEND_URL
-        sync: false          # Set in Render dashboard: https://your-service.onrender.com
+        sync: false          # Set in Render dashboard: your Vercel URL or custom domain
       - key: ADMIN_BOOTSTRAP_EMAIL
         sync: false
       - key: ADMIN_BOOTSTRAP_PASSWORD
