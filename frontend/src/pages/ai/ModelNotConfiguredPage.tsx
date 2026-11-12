@@ -129,7 +129,7 @@ export default function ModelNotConfiguredPage() {
       {/* Header */}
       <div className="flex items-center gap-3">
         <button onClick={() => navigate('/ai-models')}
-          className="p-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 transition">
+          className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition">
           <ChevronLeft size={16} />
         </button>
         <div className={`p-2 rounded-xl bg-gradient-to-br ${staticInfo.iconBg} text-white`}>
@@ -151,16 +151,16 @@ export default function ModelNotConfiguredPage() {
       </div>
 
       {/* What this model does */}
-      <div className="bg-slate-800/60 border border-slate-700 rounded-2xl p-6">
-        <h2 className="text-white font-semibold text-sm mb-3 flex items-center gap-2">
+      <div className="glass-card rounded-2xl p-6">
+        <h2 className="text-slate-900 font-semibold text-sm mb-3 flex items-center gap-2">
           <Info size={16} className="text-indigo-400" /> What This Model Does
         </h2>
         <p className="text-slate-300 text-sm leading-relaxed">{staticInfo.purpose}</p>
       </div>
 
       {/* Requirements */}
-      <div className="bg-slate-800/60 border border-slate-700 rounded-2xl p-6">
-        <h2 className="text-white font-semibold text-sm mb-4 flex items-center gap-2">
+      <div className="glass-card rounded-2xl p-6">
+        <h2 className="text-slate-900 font-semibold text-sm mb-4 flex items-center gap-2">
           <CheckSquare size={16} className="text-amber-400" /> Required Data / Resources
         </h2>
         <ul className="space-y-3">
@@ -176,8 +176,8 @@ export default function ModelNotConfiguredPage() {
       </div>
 
       {/* Use cases */}
-      <div className="bg-slate-800/60 border border-slate-700 rounded-2xl p-6">
-        <h2 className="text-white font-semibold text-sm mb-4">Use Cases for LandGuard</h2>
+      <div className="glass-card rounded-2xl p-6">
+        <h2 className="text-slate-900 font-semibold text-sm mb-4">Use Cases for LandGuard</h2>
         <ul className="space-y-2">
           {staticInfo.useCases.map((uc, i) => (
             <li key={i} className="flex items-start gap-2 text-sm text-slate-300">

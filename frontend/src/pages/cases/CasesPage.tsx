@@ -11,21 +11,21 @@ import { useLang } from '../../context/LangContext'
 import type { Case } from '../../types'
 
 const STATUS_COLORS: Record<string, string> = {
-  'Reported':              'bg-blue-500/15 text-blue-400 border-blue-500/30',
-  'Under Review':          'bg-amber-500/15 text-amber-400 border-amber-500/30',
-  'Field Survey Assigned': 'bg-violet-500/15 text-violet-400 border-violet-500/30',
-  'Survey Submitted':      'bg-cyan-500/15 text-cyan-400 border-cyan-500/30',
-  'Decision Pending':      'bg-orange-500/15 text-orange-400 border-orange-500/30',
-  'Resolved':              'bg-green-500/15 text-green-400 border-green-500/30',
-  'Disputed':              'bg-red-500/15 text-red-400 border-red-500/30',
-  'Referred for Appeal':   'bg-gray-500/15 text-gray-400 border-gray-500/30',
+  'Reported':              'bg-blue-50 text-blue-700 border-blue-200',
+  'Under Review':          'bg-amber-50 text-amber-700 border-amber-200',
+  'Field Survey Assigned': 'bg-violet-50 text-violet-700 border-violet-200',
+  'Survey Submitted':      'bg-cyan-50 text-cyan-700 border-cyan-200',
+  'Decision Pending':      'bg-orange-50 text-orange-700 border-orange-200',
+  'Resolved':              'bg-green-50 text-green-700 border-green-200',
+  'Disputed':              'bg-red-50 text-red-700 border-red-200',
+  'Referred for Appeal':   'bg-slate-100 text-slate-700 border-slate-200',
 }
 
 const PRIORITY_COLORS: Record<string, string> = {
-  Critical: 'text-red-400',
-  High:     'text-orange-400',
-  Medium:   'text-amber-400',
-  Low:      'text-green-400',
+  Critical: 'text-red-600 font-semibold',
+  High:     'text-orange-600 font-semibold',
+  Medium:   'text-amber-600 font-medium',
+  Low:      'text-green-600 font-medium',
 }
 
 const ALL_STATUSES = [
@@ -81,10 +81,10 @@ export default function CasesPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold text-dark-100 flex items-center gap-2">
+          <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
             <Briefcase size={20} className="text-violet-400" /> {t.cases_title}
           </h1>
-          <p className="text-dark-500 text-sm">{total} cases total</p>
+          <p className="text-slate-400 text-sm">{total} cases total</p>
         </div>
         <div className="flex gap-2">
           <button onClick={() => load()} className="btn-ghost p-2" id="cases-refresh-btn"><RefreshCw size={16} /></button>
@@ -99,7 +99,7 @@ export default function CasesPage() {
       {/* Filters */}
       <div className="glass-card p-3 flex flex-wrap gap-2 items-center">
         <div className="relative flex-1 min-w-[180px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-dark-500" size={13} />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={13} />
           <input id="cases-search" type="text" placeholder="Search case number or title..."
             className="input-field pl-8 text-xs py-2 w-full" value={search}
             onChange={e => setSearch(e.target.value)}
@@ -118,11 +118,11 @@ export default function CasesPage() {
       {/* Cases Table */}
       <div className="glass-card overflow-hidden">
         {loading ? (
-          <div className="flex items-center justify-center py-16 gap-2 text-dark-400">
+          <div className="flex items-center justify-center py-16 gap-2 text-slate-500">
             <Loader2 size={18} className="animate-spin" /> {t.loading}
           </div>
         ) : cases.length === 0 ? (
-          <div className="text-center py-16 text-dark-500">
+          <div className="text-center py-16 text-slate-400">
             <Briefcase size={32} className="mx-auto mb-3 opacity-30" />
             <p>{t.nodata}</p>
           </div>
@@ -141,17 +141,17 @@ export default function CasesPage() {
             </thead>
             <tbody>
               {cases.map(c => (
-                <tr key={c.id} className="cursor-pointer hover:bg-dark-800/30"
+                <tr key={c.id} className="cursor-pointer hover:bg-white/30"
                   onClick={() => navigate(`/cases/${c.id}`)}>
                   <td>
                     <div className="flex items-center gap-1.5">
-                      <span className="font-mono text-xs text-accent-blue font-semibold">{c.case_number}</span>
+                      <span className="font-mono text-xs text-blue-600 font-semibold">{c.case_number}</span>
                       {c.is_overdue && <span className="badge text-[9px] bg-red-500/20 text-red-400 border-red-500/30">{t.case_overdue}</span>}
                     </div>
                   </td>
                   <td className="max-w-[200px]">
-                    <div className="text-sm text-dark-200 truncate">{c.title}</div>
-                    {c.parcel && <div className="text-xs text-dark-500 truncate">{c.parcel.parcel_id}</div>}
+                    <div className="text-sm text-slate-800 truncate">{c.title}</div>
+                    {c.parcel && <div className="text-xs text-slate-400 truncate">{c.parcel.parcel_id}</div>}
                   </td>
                   <td>
                     <span className={`badge border text-xs ${STATUS_COLORS[c.status] || 'badge-user'}`}>{c.status}</span>
@@ -159,15 +159,15 @@ export default function CasesPage() {
                   <td>
                     <span className={`text-xs font-semibold ${PRIORITY_COLORS[c.priority] || ''}`}>{c.priority}</span>
                   </td>
-                  <td className="text-xs text-dark-400">{c.surveyor_name || '—'}</td>
-                  <td className="text-xs text-dark-500">
+                  <td className="text-xs text-slate-500">{c.surveyor_name || '—'}</td>
+                  <td className="text-xs text-slate-400">
                     {c.deadline ? (
                       <span className={c.is_overdue ? 'text-red-400' : ''}>
                         {new Date(c.deadline).toLocaleDateString()}
                       </span>
                     ) : '—'}
                   </td>
-                  <td><ChevronRight size={14} className="text-dark-600" /></td>
+                  <td><ChevronRight size={14} className="text-slate-400" /></td>
                 </tr>
               ))}
             </tbody>
@@ -180,7 +180,7 @@ export default function CasesPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="glass-card w-full max-w-lg p-6 space-y-4 animate-fade-in">
             <div className="flex items-center justify-between">
-              <h2 className="font-bold text-dark-100 flex items-center gap-2">
+              <h2 className="font-bold text-slate-900 flex items-center gap-2">
                 <Briefcase size={18} className="text-violet-400" /> Open New Case
               </h2>
               <button onClick={() => setShowCreate(false)} className="btn-ghost p-1.5"><span>✕</span></button>
@@ -192,33 +192,33 @@ export default function CasesPage() {
             )}
             <form onSubmit={handleCreate} className="space-y-3">
               <div>
-                <label className="text-xs text-dark-400 uppercase tracking-wider font-semibold block mb-1">Case Title *</label>
+                <label className="text-xs text-slate-500 uppercase tracking-wider font-semibold block mb-1">Case Title *</label>
                 <input id="create-case-title" type="text" className="input-field text-sm"
                   value={createForm.title} onChange={e => setCreateForm(f => ({ ...f, title: e.target.value }))}
                   placeholder="Brief description of the encroachment issue" />
               </div>
               <div>
-                <label className="text-xs text-dark-400 uppercase tracking-wider font-semibold block mb-1">Description</label>
+                <label className="text-xs text-slate-500 uppercase tracking-wider font-semibold block mb-1">Description</label>
                 <textarea id="create-case-desc" className="input-field text-sm h-24 resize-none"
                   value={createForm.description} onChange={e => setCreateForm(f => ({ ...f, description: e.target.value }))}
                   placeholder="Detailed description, evidence references, concerned parties..." />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs text-dark-400 uppercase tracking-wider font-semibold block mb-1">Priority</label>
+                  <label className="text-xs text-slate-500 uppercase tracking-wider font-semibold block mb-1">Priority</label>
                   <select id="create-case-priority" className="input-field text-sm"
                     value={createForm.priority} onChange={e => setCreateForm(f => ({ ...f, priority: e.target.value }))}>
                     {['Low', 'Medium', 'High', 'Critical'].map(p => <option key={p}>{p}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="text-xs text-dark-400 uppercase tracking-wider font-semibold block mb-1">Parcel ID (optional)</label>
+                  <label className="text-xs text-slate-500 uppercase tracking-wider font-semibold block mb-1">Parcel ID (optional)</label>
                   <input id="create-case-parcel" type="text" className="input-field text-sm"
                     value={createForm.parcel_id} onChange={e => setCreateForm(f => ({ ...f, parcel_id: e.target.value }))}
                     placeholder="Link to a land parcel" />
                 </div>
               </div>
-              <p className="text-xs text-dark-600 italic">
+              <p className="text-xs text-slate-400 italic">
                 A unique case number will be assigned automatically. This action is logged.
               </p>
               <div className="flex gap-3 pt-2">

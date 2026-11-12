@@ -163,12 +163,12 @@ export default function FieldSurveyPage() {
     <div className="space-y-4 animate-fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold text-dark-100 flex items-center gap-2">
+          <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
             <ClipboardList size={20} className="text-cyan-400" /> {t.surveys_title}
           </h1>
-          <p className="text-dark-500 text-sm">
+          <p className="text-slate-400 text-sm">
             {editingSurvey ? `Editing draft: ${editingSurvey.id.slice(0, 8)}` : 'New Field Survey'}
-            {myCase && <span className="ml-2 text-accent-blue">• Case {myCase.case_number}</span>}
+            {myCase && <span className="ml-2 text-blue-600">• Case {myCase.case_number}</span>}
           </p>
         </div>
         <button onClick={loadData} className="btn-ghost p-2" id="surveys-refresh-btn"><RefreshCw size={16} /></button>
@@ -178,7 +178,7 @@ export default function FieldSurveyPage() {
         {/* Form */}
         <div className="lg:col-span-2">
           <div className="glass-card p-5">
-            <h2 className="font-semibold text-dark-200 mb-4 text-sm">{editingSurvey ? 'Edit Draft Survey' : 'New Survey'}</h2>
+            <h2 className="font-semibold text-slate-800 mb-4 text-sm">{editingSurvey ? 'Edit Draft Survey' : 'New Survey'}</h2>
 
             {success && (
               <div className="mb-4 bg-green-500/10 border border-green-500/30 rounded-lg p-3 text-green-400 text-sm flex items-center gap-2">
@@ -251,7 +251,7 @@ export default function FieldSurveyPage() {
                 <div className="flex items-center justify-between mb-1">
                   <label className="field-label">GPS Coordinates</label>
                   <button type="button" onClick={useGPS}
-                    className="text-xs text-accent-blue hover:underline flex items-center gap-1" id="use-gps-btn">
+                    className="text-xs text-blue-600 hover:underline flex items-center gap-1" id="use-gps-btn">
                     <MapPin size={11} /> Use Device GPS
                   </button>
                 </div>
@@ -263,7 +263,7 @@ export default function FieldSurveyPage() {
                     value={form.centroid_lng} onChange={setF('centroid_lng')}
                     placeholder="Longitude (e.g. 78.486671)" step="0.0000001" />
                 </div>
-                <p className="text-xs text-dark-600 mt-1">
+                <p className="text-xs text-slate-400 mt-1">
                   If GPS is unavailable, enter coordinates manually or leave blank.
                 </p>
               </div>
@@ -280,7 +280,7 @@ export default function FieldSurveyPage() {
               <div>
                 <label className="field-label flex items-center gap-2 cursor-pointer select-none">
                   <input id="survey-encroach-check" type="checkbox"
-                    className="w-4 h-4 rounded border-dark-600 bg-dark-800"
+                    className="w-4 h-4 rounded border-slate-300 bg-white"
                     checked={form.encroachment_found}
                     onChange={e => setForm(f => ({ ...f, encroachment_found: e.target.checked }))} />
                   <span>{t.survey_encroach}</span>
@@ -301,7 +301,7 @@ export default function FieldSurveyPage() {
                   placeholder="Recommended follow-up actions for the reviewer..." />
               </div>
 
-              <div className="bg-amber-500/5 border border-amber-500/20 rounded-lg p-3 text-xs text-amber-400">
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-800">
                 {t.survey_disclaimer}
               </div>
 
@@ -326,29 +326,29 @@ export default function FieldSurveyPage() {
         {/* My Surveys List */}
         <div className="space-y-3">
           <div className="glass-card p-4">
-            <h3 className="font-semibold text-dark-200 text-sm mb-3">My Surveys</h3>
+            <h3 className="font-semibold text-slate-800 text-sm mb-3">My Surveys</h3>
             {loading ? (
-              <div className="flex items-center gap-2 text-dark-500 text-xs">
+              <div className="flex items-center gap-2 text-slate-400 text-xs">
                 <Loader2 size={12} className="animate-spin" /> Loading...
               </div>
             ) : surveys.length === 0 ? (
-              <p className="text-dark-600 text-xs italic">No surveys yet.</p>
+              <p className="text-slate-400 text-xs italic">No surveys yet.</p>
             ) : surveys.map(s => (
               <button key={s.id} onClick={() => loadEdit(s)}
                 className={`w-full text-left p-2.5 rounded-lg border transition-all mb-2
                   ${editingSurvey?.id === s.id
-                    ? 'bg-navy-600/20 border-accent-blue/40'
-                    : 'bg-dark-800/40 border-dark-700/40 hover:border-dark-600'}`}
+                    ? 'bg-blue-50 border-accent-blue/40'
+                    : 'bg-white/40 border-slate-200/40 hover:border-slate-300'}`}
                 id={`survey-item-${s.id.slice(0, 8)}`}>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-mono text-dark-300">{s.id.slice(0, 12)}…</span>
+                  <span className="text-xs font-mono text-slate-700">{s.id.slice(0, 12)}…</span>
                   <span className={`badge text-[10px] ${
                     s.status === 'submitted' ? 'badge-verified' :
                     s.status === 'accepted'  ? 'badge-verified' :
                     s.status === 'rejected'  ? 'badge-false-positive' : 'badge-user'
                   }`}>{s.status}</span>
                 </div>
-                {s.survey_date && <div className="text-xs text-dark-500 mt-0.5">{s.survey_date}</div>}
+                {s.survey_date && <div className="text-xs text-slate-400 mt-0.5">{s.survey_date}</div>}
                 {s.encroachment_found && (
                   <div className="text-xs text-red-400 mt-0.5 flex items-center gap-1">
                     <AlertTriangle size={9} /> Encroachment found

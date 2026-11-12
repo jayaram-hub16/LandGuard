@@ -196,8 +196,8 @@ export default function AddParcelPage() {
           <ArrowLeft size={18} />
         </button>
         <div>
-          <h1 className="text-xl font-bold text-dark-100">Add Land Parcel</h1>
-          <p className="text-dark-500 text-sm">Register a new land parcel in the system</p>
+          <h1 className="text-xl font-bold text-slate-900">Add Land Parcel</h1>
+          <p className="text-slate-400 text-sm">Register a new land parcel in the system</p>
         </div>
       </div>
 
@@ -216,7 +216,7 @@ export default function AddParcelPage() {
 
         {/* Section 1: Identification */}
         <div className="glass-card p-5">
-          <h2 className="font-semibold text-dark-200 mb-4 text-sm uppercase tracking-wider border-b border-dark-700 pb-2">
+          <h2 className="font-semibold text-slate-800 mb-4 text-sm uppercase tracking-wider border-b border-slate-200 pb-2">
             1. Land Identification
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -245,7 +245,7 @@ export default function AddParcelPage() {
 
         {/* Section 2: Landowner */}
         <div className="glass-card p-5">
-          <h2 className="font-semibold text-dark-200 mb-4 text-sm uppercase tracking-wider border-b border-dark-700 pb-2">
+          <h2 className="font-semibold text-slate-800 mb-4 text-sm uppercase tracking-wider border-b border-slate-200 pb-2">
             2. Landowner Information
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -270,7 +270,7 @@ export default function AddParcelPage() {
 
         {/* Section 3: Location */}
         <div className="glass-card p-5">
-          <h2 className="font-semibold text-dark-200 mb-4 text-sm uppercase tracking-wider border-b border-dark-700 pb-2">
+          <h2 className="font-semibold text-slate-800 mb-4 text-sm uppercase tracking-wider border-b border-slate-200 pb-2">
             3. Location
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
@@ -323,7 +323,7 @@ export default function AddParcelPage() {
                 className={`text-xs px-3 py-1.5 rounded-lg border transition-all ${
                   mapType === type
                     ? 'bg-blue-600 border-blue-500 text-white'
-                    : 'bg-dark-800 border-dark-600 text-dark-400 hover:text-dark-200'
+                    : 'bg-white border-slate-300 text-slate-500 hover:text-slate-800'
                 }`}
               >
                 {label}
@@ -332,9 +332,9 @@ export default function AddParcelPage() {
           </div>
 
           {/* Map picker */}
-          <div className="rounded-xl overflow-hidden border border-dark-600" style={{ height: 280 }}>
-            <div className="px-3 py-1.5 bg-dark-700/60 border-b border-dark-600 text-xs text-dark-400 flex items-center gap-1.5">
-              <MapPin size={12} className="text-accent-blue" />
+          <div className="rounded-xl overflow-hidden border border-slate-300" style={{ height: 280 }}>
+            <div className="px-3 py-1.5 bg-slate-100/80 border-b border-slate-300 text-xs text-slate-500 flex items-center gap-1.5">
+              <MapPin size={12} className="text-blue-600" />
               Click on the map to set coordinates
             </div>
             <MapContainer center={mapCenter} zoom={markerPos ? 15 : 5} style={{ height: 248, width: '100%' }}>
@@ -382,7 +382,7 @@ export default function AddParcelPage() {
 
         {/* Section 4: Area & Classification */}
         <div className="glass-card p-5">
-          <h2 className="font-semibold text-dark-200 mb-4 text-sm uppercase tracking-wider border-b border-dark-700 pb-2">
+          <h2 className="font-semibold text-slate-800 mb-4 text-sm uppercase tracking-wider border-b border-slate-200 pb-2">
             4. Area &amp; Land Classification
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -415,7 +415,7 @@ export default function AddParcelPage() {
 
         {/* Section 5: Notes */}
         <div className="glass-card p-5">
-          <h2 className="font-semibold text-dark-200 mb-4 text-sm uppercase tracking-wider border-b border-dark-700 pb-2">
+          <h2 className="font-semibold text-slate-800 mb-4 text-sm uppercase tracking-wider border-b border-slate-200 pb-2">
             5. Additional Notes
           </h2>
           <Field label="Notes / Remarks" error={undefined}>
@@ -423,7 +423,7 @@ export default function AddParcelPage() {
               placeholder="Survey remarks, boundary disputes, document references..."
               value={form.notes} onChange={set('notes')} />
           </Field>
-          <p className="text-xs text-dark-600 italic mt-2">
+          <p className="text-xs text-slate-400 italic mt-2">
             ⚠ All entries are stored in the LandGuard application database. Ensure accuracy.
             This system does not create legally certified land records.
           </p>
@@ -457,7 +457,7 @@ function Field({ label, error, children }: {
 }) {
   return (
     <div>
-      <label className="block text-xs font-semibold text-dark-400 mb-1.5 uppercase tracking-wider">
+      <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">
         {label}
       </label>
       {children}

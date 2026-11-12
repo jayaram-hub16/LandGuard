@@ -43,7 +43,7 @@ export default function AdminDashboardPage() {
 
   if (loading) return (
     <div className="flex items-center justify-center h-64">
-      <Loader2 size={24} className="animate-spin text-dark-400" />
+      <Loader2 size={24} className="animate-spin text-slate-400" />
     </div>
   )
 
@@ -57,10 +57,10 @@ export default function AdminDashboardPage() {
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold text-dark-100 flex items-center gap-2">
+          <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
             <AlertCircle size={20} className="text-violet-400" /> Admin Dashboard
           </h1>
-          <p className="text-dark-500 text-sm">System overview and management controls</p>
+          <p className="text-slate-400 text-sm">System overview and management controls</p>
         </div>
         <div className="flex gap-2">
           <button onClick={load} className="btn-ghost p-2" id="admin-refresh-btn"><RefreshCw size={16} /></button>
@@ -84,7 +84,7 @@ export default function AdminDashboardPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { icon: <FileText size={20} />, label: 'Total Parcels', value: stats?.parcels.total || 0,
-            sub: `${stats?.parcels.flagged || 0} flagged`, color: 'from-navy-700 to-accent-blue' },
+            sub: `${stats?.parcels.flagged || 0} flagged`, color: 'from-blue-700 to-blue-500' },
           { icon: <AlertTriangle size={20} />, label: 'Detections', value: stats?.detections.total || 0,
             sub: `${stats?.detections.pending || 0} pending`, color: 'from-amber-700 to-amber-500' },
           { icon: <Users size={20} />, label: 'Users', value: stats?.users.total || 0,
@@ -92,14 +92,14 @@ export default function AdminDashboardPage() {
           { icon: <Database size={20} />, label: 'Datasets', value: stats?.datasets.total || 0,
             sub: 'Uploaded GIS data', color: 'from-cyan-700 to-cyan-500' },
         ].map(s => (
-          <div key={s.label} className="glass-card p-5 flex items-start gap-4">
-            <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${s.color} flex items-center justify-center text-white flex-shrink-0`}>
+          <div key={s.label} className="stat-card-3d flex items-start gap-4 group cursor-default">
+            <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${s.color} flex items-center justify-center text-white flex-shrink-0 shadow-sm`}>
               {s.icon}
             </div>
             <div>
-              <div className="text-2xl font-black text-dark-100">{s.value}</div>
-              <div className="text-xs font-semibold text-dark-400 uppercase tracking-wider">{s.label}</div>
-              <div className="text-xs text-dark-600 mt-0.5">{s.sub}</div>
+              <div className="text-2xl font-black text-slate-900">{s.value}</div>
+              <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">{s.label}</div>
+              <div className="text-xs text-slate-300 mt-0.5">{s.sub}</div>
             </div>
           </div>
         ))}
@@ -108,13 +108,13 @@ export default function AdminDashboardPage() {
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <div className="glass-card p-5">
-          <h3 className="font-semibold text-dark-200 mb-4">Land-Use Distribution</h3>
+          <h3 className="font-semibold text-slate-800 mb-4">Land-Use Distribution</h3>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={luData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
               <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 10 }} angle={-20} textAnchor="end" height={45} />
               <YAxis tick={{ fill: '#64748b', fontSize: 11 }} />
-              <Tooltip contentStyle={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 8 }} />
+              <Tooltip contentStyle={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 8 }} labelStyle={{ color: '#1e293b' }} />
               <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                 {luData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
               </Bar>
@@ -123,13 +123,13 @@ export default function AdminDashboardPage() {
         </div>
 
         <div className="glass-card p-5">
-          <h3 className="font-semibold text-dark-200 mb-4">Detection Severity Breakdown</h3>
+          <h3 className="font-semibold text-slate-800 mb-4">Detection Severity Breakdown</h3>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={sevData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
               <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 11 }} />
               <YAxis tick={{ fill: '#64748b', fontSize: 11 }} />
-              <Tooltip contentStyle={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 8 }} />
+              <Tooltip contentStyle={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 8 }} labelStyle={{ color: '#1e293b' }} />
               <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                 {sevData.map((entry, i) => <Cell key={i} fill={entry.fill} />)}
               </Bar>
@@ -141,27 +141,27 @@ export default function AdminDashboardPage() {
       {/* Recent activity */}
       {stats?.recent_activity && stats.recent_activity.length > 0 && (
         <div className="glass-card overflow-hidden">
-          <div className="px-5 py-3 border-b border-dark-700/50 flex items-center gap-2">
-            <Activity size={16} className="text-accent-cyan" />
-            <h3 className="font-semibold text-dark-200">Recent Audit Activity</h3>
+          <div className="px-5 py-3 border-b border-slate-200 flex items-center gap-2">
+            <Activity size={16} className="text-sky-500" />
+            <h3 className="font-semibold text-slate-800">Recent Audit Activity</h3>
           </div>
-          <div className="divide-y divide-dark-800/40">
+          <div className="divide-y divide-slate-100">
             {stats.recent_activity.slice(0, 8).map(log => (
-              <div key={log.id} className="px-5 py-3 flex items-center gap-3 hover:bg-dark-700/20">
-                <div className="w-8 h-8 rounded-full bg-dark-700 flex items-center justify-center text-xs text-dark-400 flex-shrink-0">
+              <div key={log.id} className="px-5 py-3 flex items-center gap-3 hover:bg-slate-50">
+                <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-xs text-slate-500 flex-shrink-0">
                   {log.actor_email?.charAt(0).toUpperCase() || '?'}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm text-dark-200">
-                    <span className="font-medium text-dark-100">{log.actor_email || 'system'}</span>
+                  <div className="text-sm text-slate-800">
+                    <span className="font-medium text-slate-900">{log.actor_email || 'system'}</span>
                     {' — '}
-                    <span className="text-accent-blue font-mono text-xs">{log.action}</span>
+                    <span className="text-blue-600 font-mono text-xs">{log.action}</span>
                   </div>
-                  <div className="text-xs text-dark-600 mt-0.5">
+                  <div className="text-xs text-slate-300 mt-0.5">
                     {log.entity_type} {log.entity_id?.slice(0, 8)}
                   </div>
                 </div>
-                <div className="text-xs text-dark-600 flex-shrink-0">
+                <div className="text-xs text-slate-300 flex-shrink-0">
                   {log.timestamp ? new Date(log.timestamp).toLocaleTimeString() : ''}
                 </div>
               </div>

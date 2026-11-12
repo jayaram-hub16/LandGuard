@@ -10,11 +10,11 @@ import { useAuth } from '../../context/AuthContext'
 import type { Notification } from '../../types'
 
 const STATUS_DESCRIPTIONS: Record<string, { color: string; icon: React.ReactNode }> = {
-  'Submitted':    { color: 'text-blue-400',   icon: <CheckCircle size={16} /> },
-  'Acknowledged': { color: 'text-cyan-400',   icon: <CheckCircle size={16} /> },
-  'Under Review': { color: 'text-amber-400',  icon: <AlertTriangle size={16} /> },
-  'Resolved':     { color: 'text-green-400',  icon: <CheckCircle size={16} /> },
-  'Closed':       { color: 'text-dark-500',   icon: <CheckCircle size={16} /> },
+  'Submitted':    { color: 'text-blue-600',   icon: <CheckCircle size={16} /> },
+  'Acknowledged': { color: 'text-sky-600',    icon: <CheckCircle size={16} /> },
+  'Under Review': { color: 'text-amber-600',  icon: <AlertTriangle size={16} /> },
+  'Resolved':     { color: 'text-green-600',  icon: <CheckCircle size={16} /> },
+  'Closed':       { color: 'text-slate-500',  icon: <CheckCircle size={16} /> },
 }
 
 export default function CitizenPortalPage() {
@@ -147,15 +147,15 @@ export default function CitizenPortalPage() {
       {/* Header */}
       <div className="text-center space-y-2">
         <div className="flex items-center justify-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-navy-600 to-accent-blue
-                          flex items-center justify-center shadow-glow-blue">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-600 to-sky-500
+                          flex items-center justify-center shadow-sm">
             <MessageSquare className="w-6 h-6 text-white" />
           </div>
         </div>
-        <h1 className="text-2xl font-bold text-dark-100">{t.portal_title}</h1>
-        <p className="text-dark-400 text-sm max-w-md mx-auto">{t.portal_subtitle}</p>
+        <h1 className="text-2xl font-bold text-slate-900">{t.portal_title}</h1>
+        <p className="text-slate-500 text-sm max-w-md mx-auto">{t.portal_subtitle}</p>
         <button onClick={toggleLang}
-          className="inline-flex items-center gap-1.5 text-xs text-accent-blue hover:underline mt-1"
+          className="inline-flex items-center gap-1.5 text-xs text-blue-600 hover:underline mt-1"
           id="portal-lang-toggle-btn">
           <Globe size={12} /> {lang === 'en' ? 'తెలుగులో చదవండి' : 'Read in English'}
         </button>
@@ -168,20 +168,20 @@ export default function CitizenPortalPage() {
       </div>
 
       {/* Tab Switcher */}
-      <div className="flex rounded-xl bg-dark-800/60 p-1 gap-1">
+      <div className="flex rounded-xl bg-white/80 p-1 gap-1">
         <button onClick={() => setTab('submit')}
-          className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all ${tab === 'submit' ? 'bg-dark-700 text-dark-100' : 'text-dark-500 hover:text-dark-300'}`}
+          className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all ${tab === 'submit' ? 'bg-slate-100 text-slate-900' : 'text-slate-400 hover:text-slate-700'}`}
           id="tab-submit-btn">
           {t.complaint_submit}
         </button>
         <button onClick={() => setTab('track')}
-          className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all ${tab === 'track' ? 'bg-dark-700 text-dark-100' : 'text-dark-500 hover:text-dark-300'}`}
+          className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all ${tab === 'track' ? 'bg-slate-100 text-slate-900' : 'text-slate-400 hover:text-slate-700'}`}
           id="tab-track-btn">
           {t.complaint_track}
         </button>
         {user && (
           <button onClick={() => setTab('alerts')}
-            className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5 ${tab === 'alerts' ? 'bg-dark-700 text-dark-100' : 'text-dark-500 hover:text-dark-300'}`}
+            className={`flex-1 py-2.5 text-sm font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5 ${tab === 'alerts' ? 'bg-slate-100 text-slate-900' : 'text-slate-400 hover:text-slate-700'}`}
             id="tab-alerts-btn">
             <Bell size={13} /> My Alerts
           </button>
@@ -196,12 +196,12 @@ export default function CitizenPortalPage() {
               <div className="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center mx-auto">
                 <CheckCircle size={32} className="text-green-400" />
               </div>
-              <h2 className="text-lg font-bold text-dark-100">Complaint Received</h2>
-              <div className="bg-dark-800/60 rounded-xl p-4 border border-dark-700">
-                <p className="text-xs text-dark-500 mb-1">{t.complaint_ack}</p>
-                <p className="text-2xl font-mono font-bold text-accent-blue tracking-widest">{ackNumber}</p>
+              <h2 className="text-lg font-bold text-slate-900">Complaint Received</h2>
+              <div className="bg-white/80 rounded-xl p-4 border border-slate-200">
+                <p className="text-xs text-slate-400 mb-1">{t.complaint_ack}</p>
+                <p className="text-2xl font-mono font-bold text-blue-600 tracking-widest">{ackNumber}</p>
               </div>
-              <p className="text-dark-400 text-sm">
+              <p className="text-slate-500 text-sm">
                 Keep this number safe. Use the "{t.complaint_track}" tab to check your complaint status.
               </p>
               <div className="flex gap-3 justify-center">
@@ -237,7 +237,7 @@ export default function CitizenPortalPage() {
                 <textarea id="complaint-desc" className="input-field py-2 h-32 resize-none"
                   value={form.description} onChange={setF('description')}
                   placeholder="Describe what you observed. Include dates, boundaries, and any evidence you have. Minimum 20 characters." />
-                <p className="text-xs text-dark-600 mt-1">{form.description.length} characters</p>
+                <p className="text-xs text-slate-400 mt-1">{form.description.length} characters</p>
               </Field>
               <Field label={t.complaint_location} error={undefined}>
                 <input id="complaint-location" type="text" className="input-field py-2"
@@ -255,11 +255,11 @@ export default function CitizenPortalPage() {
                     type="file"
                     id="complaint-attachment"
                     onChange={e => setAttachmentFile(e.target.files?.[0] || null)}
-                    className="input-field text-xs py-2 file:mr-3 file:py-1 file:px-2.5 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-dark-700 file:text-dark-200"
+                    className="input-field text-xs py-2 file:mr-3 file:py-1 file:px-2.5 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-800"
                   />
                 </div>
               </Field>
-              <p className="text-xs text-dark-600 italic">
+              <p className="text-xs text-slate-400 italic">
                 Your contact information will only be used for complaint follow-up and will not be publicly disclosed.
               </p>
               <button type="submit" disabled={submitting}
@@ -274,7 +274,7 @@ export default function CitizenPortalPage() {
 
       {/* ── Track Tab ── */}
       {tab === 'track' && (        <div className="glass-card p-6 space-y-4">
-          <h2 className="font-semibold text-dark-200">{t.complaint_status}</h2>
+          <h2 className="font-semibold text-slate-800">{t.complaint_status}</h2>
           <form onSubmit={handleTrack} className="flex gap-2" id="track-form">
             <input id="track-ack-input" type="text" className="input-field flex-1 py-2 font-mono"
               value={trackAck} onChange={e => setTrackAck(e.target.value.toUpperCase())}
@@ -294,25 +294,25 @@ export default function CitizenPortalPage() {
 
           {trackResult && (
             <div className="space-y-4">
-              <div className="bg-dark-800/50 rounded-xl p-4 border border-dark-700/50 space-y-3">
+              <div className="bg-white/50 rounded-xl p-4 border border-slate-200/80 space-y-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs text-dark-500">{t.complaint_ack}</p>
-                    <p className="font-mono font-bold text-accent-blue">{trackResult.ack_number}</p>
+                    <p className="text-xs text-slate-400">{t.complaint_ack}</p>
+                    <p className="font-mono font-bold text-blue-600">{trackResult.ack_number}</p>
                   </div>
-                  <div className={`flex items-center gap-2 font-semibold text-sm ${STATUS_DESCRIPTIONS[trackResult.status]?.color || 'text-dark-300'}`}>
+                  <div className={`flex items-center gap-2 font-semibold text-sm ${STATUS_DESCRIPTIONS[trackResult.status]?.color || 'text-slate-700'}`}>
                     {STATUS_DESCRIPTIONS[trackResult.status]?.icon}
                     {trackResult.status}
                   </div>
                 </div>
-                <p className="text-dark-300 text-sm">{trackResult.description}</p>
+                <p className="text-slate-700 text-sm">{trackResult.description}</p>
                 {trackResult.has_case && (
                   <div className="text-xs text-amber-400 bg-amber-500/5 border border-amber-500/20 rounded p-2">
                     A formal case has been opened for this complaint and is under active review.
                   </div>
                 )}
                 {trackResult.submitted_at && (
-                  <p className="text-xs text-dark-600">
+                  <p className="text-xs text-slate-400">
                     Submitted: {new Date(trackResult.submitted_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}
                   </p>
                 )}
@@ -355,17 +355,17 @@ export default function CitizenPortalPage() {
               {/* My Linked Parcels */}
               <div className="glass-card p-5">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="font-semibold text-dark-100 flex items-center gap-2">
+                  <h2 className="font-semibold text-slate-900 flex items-center gap-2">
                     <MapPin size={16} className="text-green-400" /> My Linked Parcels
                   </h2>
                   <button onClick={loadAlerts}
-                    className="p-1.5 rounded-lg bg-dark-700 hover:bg-dark-600 text-dark-400 transition">
+                    className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-500 transition">
                     <RefreshCw size={13} />
                   </button>
                 </div>
 
                 {myParcels.length === 0 ? (
-                  <div className="text-center py-6 text-dark-500 text-sm">
+                  <div className="text-center py-6 text-slate-400 text-sm">
                     <Shield size={28} className="mx-auto mb-2 opacity-30" />
                     <p>No parcels linked to your account yet.</p>
                     <p className="text-xs mt-1">Use the form below to link a registered parcel.</p>
@@ -374,11 +374,11 @@ export default function CitizenPortalPage() {
                   <div className="space-y-2">
                     {myParcels.map(p => (
                       <div key={p.id}
-                        className="flex items-center justify-between bg-dark-800/60 rounded-lg px-4 py-3 border border-dark-700/50">
+                        className="flex items-center justify-between bg-white/80 rounded-lg px-4 py-3 border border-slate-200/80">
                         <div>
-                          <span className="font-mono text-sm text-dark-200">{p.parcel_id}</span>
-                          {p.district && <span className="text-xs text-dark-500 ml-2">· {p.district}</span>}
-                          {p.registered_land_use && <span className="text-xs text-dark-500 ml-1">· {p.registered_land_use}</span>}
+                          <span className="font-mono text-sm text-slate-800">{p.parcel_id}</span>
+                          {p.district && <span className="text-xs text-slate-400 ml-2">· {p.district}</span>}
+                          {p.registered_land_use && <span className="text-xs text-slate-400 ml-1">· {p.registered_land_use}</span>}
                         </div>
                         {p.detection_count > 0 ? (
                           <span className="text-xs bg-red-900/50 text-red-300 border border-red-700/50 px-2 py-0.5 rounded-full">
@@ -395,8 +395,8 @@ export default function CitizenPortalPage() {
                 )}
 
                 {/* Link parcel form */}
-                <div className="mt-4 pt-4 border-t border-dark-700/50">
-                  <h3 className="text-xs font-semibold text-dark-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                <div className="mt-4 pt-4 border-t border-slate-200/80">
+                  <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
                     <Link2 size={12} /> Link a Parcel to Your Account
                   </h3>
                   <form onSubmit={handleClaimParcel} className="space-y-2">
@@ -434,7 +434,7 @@ export default function CitizenPortalPage() {
 
               {/* Notifications / Alerts */}
               <div className="glass-card p-5">
-                <h2 className="font-semibold text-dark-100 flex items-center gap-2 mb-4">
+                <h2 className="font-semibold text-slate-900 flex items-center gap-2 mb-4">
                   <Bell size={16} className="text-amber-400" /> Encroachment Alerts
                   {alerts.length > 0 && (
                     <span className="ml-auto text-xs bg-amber-900/40 text-amber-300 border border-amber-700/50 px-2 py-0.5 rounded-full">
@@ -444,7 +444,7 @@ export default function CitizenPortalPage() {
                 </h2>
 
                 {alerts.length === 0 ? (
-                  <div className="text-center py-6 text-dark-500 text-sm">
+                  <div className="text-center py-6 text-slate-400 text-sm">
                     <Bell size={28} className="mx-auto mb-2 opacity-30" />
                     <p>No alerts at this time.</p>
                     <p className="text-xs mt-1">
@@ -459,17 +459,17 @@ export default function CitizenPortalPage() {
                       <div key={n.id}
                         className={`rounded-lg px-4 py-3 border text-sm ${
                           n.is_read
-                            ? 'bg-dark-800/40 border-dark-700/30 text-dark-400'
-                            : 'bg-amber-900/10 border-amber-700/30 text-dark-200'
+                            ? 'bg-white/40 border-slate-200/30 text-slate-500'
+                            : 'bg-amber-900/10 border-amber-700/30 text-slate-800'
                         }`}>
                         <div className="flex items-start gap-2">
                           {n.is_read
-                            ? <CheckCircle size={14} className="text-dark-600 mt-0.5 shrink-0" />
+                            ? <CheckCircle size={14} className="text-slate-400 mt-0.5 shrink-0" />
                             : <AlertTriangle size={14} className="text-amber-400 mt-0.5 shrink-0" />}
                           <div className="flex-1 min-w-0">
                             <p className="font-medium text-xs">{n.title}</p>
-                            <p className="text-xs text-dark-400 mt-0.5">{n.message}</p>
-                            <p className="text-xs text-dark-600 mt-1">
+                            <p className="text-xs text-slate-500 mt-0.5">{n.message}</p>
+                            <p className="text-xs text-slate-400 mt-1">
                               {n.created_at ? new Date(n.created_at).toLocaleDateString('en-IN', {
                                 day: 'numeric', month: 'short', year: 'numeric',
                               }) : ''}
@@ -482,8 +482,8 @@ export default function CitizenPortalPage() {
                 )}
 
                 {/* Case management note */}
-                <div className="mt-4 pt-4 border-t border-dark-700/50">
-                  <div className="flex items-start gap-2 text-xs text-dark-500">
+                <div className="mt-4 pt-4 border-t border-slate-200/80">
+                  <div className="flex items-start gap-2 text-xs text-slate-400">
                     <FileText size={12} className="mt-0.5 shrink-0" />
                     <p>
                       If a formal case has been opened on your parcel, the assigned officer will
@@ -501,9 +501,9 @@ export default function CitizenPortalPage() {
       {/* ── Prompt login for Alerts tab if not logged in ── */}
       {tab === 'alerts' && !user && (
         <div className="glass-card p-8 text-center space-y-4">
-          <Shield size={40} className="mx-auto text-dark-500" />
-          <h2 className="text-lg font-semibold text-dark-200">Login Required</h2>
-          <p className="text-dark-400 text-sm max-w-xs mx-auto">
+          <Shield size={40} className="mx-auto text-slate-400" />
+          <h2 className="text-lg font-semibold text-slate-800">Login Required</h2>
+          <p className="text-slate-500 text-sm max-w-xs mx-auto">
             Sign in to your LandGuard account to view encroachment alerts for your registered land parcels.
           </p>
           <a href="/login"
@@ -519,7 +519,7 @@ export default function CitizenPortalPage() {
 function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
   return (
     <div>
-      <label className="block text-xs font-semibold text-dark-400 mb-1 uppercase tracking-wider">{label}</label>
+      <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wider">{label}</label>
       {children}
       {error && <p className="text-red-400 text-xs mt-1">{error}</p>}
     </div>

@@ -67,7 +67,7 @@ export default function WaterbodyPage() {
       {/* Header */}
       <div className="flex items-center gap-3">
         <button onClick={() => navigate('/ai-models')}
-          className="p-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 transition">
+          className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition">
           <ChevronLeft size={16} />
         </button>
         <div className="p-2 rounded-xl bg-gradient-to-br from-sky-500 to-blue-600">
@@ -119,7 +119,7 @@ export default function WaterbodyPage() {
             { label: 'Waterbodies Found', value: summary.waterbodies_found ?? 0, color: 'text-sky-400' },
             { label: 'Data Source',       value: summary.source ?? 'OSM',        color: 'text-blue-400' },
           ].map(s => (
-            <div key={s.label} className="bg-slate-800/50 border border-slate-700 rounded-xl p-4 text-center">
+            <div key={s.label} className="glass-card rounded-xl p-4 text-center">
               <div className={`text-2xl font-bold ${s.color}`}>{s.value}</div>
               <div className="text-slate-400 text-xs mt-1">{s.label}</div>
             </div>
@@ -163,13 +163,13 @@ export default function WaterbodyPage() {
 
       {/* Waterbody list */}
       {features.length > 0 && (
-        <div className="bg-slate-800/60 border border-slate-700 rounded-xl overflow-hidden">
+        <div className="glass-card rounded-xl overflow-hidden">
           <div className="px-5 py-3 border-b border-slate-700 text-sm font-semibold text-white">
             Detected Waterbodies ({features.length})
           </div>
           <div className="overflow-x-auto max-h-56">
             <table className="w-full text-xs">
-              <thead className="bg-slate-900/50">
+              <thead className="bg-slate-50 border-b border-slate-100">
                 <tr>
                   {['Name', 'Type', 'OSM ID'].map(h => (
                     <th key={h} className="px-4 py-2 text-left text-slate-400 font-medium">{h}</th>
@@ -181,7 +181,7 @@ export default function WaterbodyPage() {
                   const feat = f as { properties: WaterbodyProps }
                   const p = feat.properties
                   return (
-                    <tr key={p.osm_id} className="hover:bg-slate-700/30">
+                    <tr key={p.osm_id} className="hover:bg-blue-50/40">
                       <td className="px-4 py-2 text-slate-300">
                         <span className="flex items-center gap-1.5">
                           <span className="w-2.5 h-2.5 rounded-full bg-blue-400" />
@@ -201,7 +201,7 @@ export default function WaterbodyPage() {
 
       {/* Disclaimer */}
       {summary?.disclaimer && (
-        <div className="bg-slate-800/30 border border-slate-700/50 rounded-xl p-4 text-xs text-slate-500">
+        <div className="glass-card rounded-xl bg-slate-50/50 p-4 text-xs text-slate-500">
           {summary.disclaimer}
         </div>
       )}

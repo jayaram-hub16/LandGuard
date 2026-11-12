@@ -19,14 +19,14 @@ const COLORS = ['#3b82f6', '#06b6d4', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6'
 const StatCard = ({ icon, label, value, sub, color }: {
   icon: React.ReactNode; label: string; value: string | number; sub?: string; color: string
 }) => (
-  <div className="glass-card p-5 flex items-start gap-4 hover:border-dark-600 transition-all">
-    <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${color}`}>
+  <div className="stat-card-3d flex items-start gap-4 group cursor-default">
+    <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md ${color}`}>
       {icon}
     </div>
     <div>
-      <div className="text-2xl font-black text-dark-100">{value}</div>
-      <div className="text-xs font-semibold text-dark-400 uppercase tracking-wider mt-0.5">{label}</div>
-      {sub && <div className="text-xs text-dark-600 mt-1">{sub}</div>}
+      <div className="text-2xl font-black text-slate-900">{value}</div>
+      <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-0.5">{label}</div>
+      {sub && <div className="text-xs text-slate-400 mt-1">{sub}</div>}
     </div>
   </div>
 )
@@ -100,7 +100,7 @@ export default function DashboardPage() {
 
   if (loading) return (
     <div className="flex items-center justify-center h-64">
-      <div className="flex items-center gap-3 text-dark-400">
+      <div className="flex items-center gap-3 text-slate-500">
         <Loader2 size={20} className="animate-spin" />
         Loading dashboard...
       </div>
@@ -112,10 +112,10 @@ export default function DashboardPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-dark-100">
+          <h1 className="text-2xl font-bold text-slate-900">
             Welcome back, <span className="gradient-text">{user?.full_name?.split(' ')[0]}</span>
           </h1>
-          <p className="text-dark-500 text-sm mt-1">LandGuard GIS Encroachment Detection Dashboard</p>
+          <p className="text-slate-500 text-sm mt-1">LandGuard GIS Encroachment Detection Dashboard</p>
         </div>
         <div className="flex gap-3">
           <button onClick={loadData} className="btn-secondary flex items-center gap-2 text-sm px-4 py-2"
@@ -157,7 +157,7 @@ export default function DashboardPage() {
           icon={<FileText size={22} className="text-white" />}
           label="Total Parcels" value={totalParcels}
           sub={`${flaggedParcels} flagged`}
-          color="bg-gradient-to-br from-navy-600 to-accent-blue"
+          color="bg-gradient-to-br from-blue-600 to-sky-500"
         />
         <StatCard
           icon={<AlertTriangle size={22} className="text-white" />}
@@ -195,17 +195,17 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Land-use distribution */}
         <div className="glass-card p-5">
-          <h3 className="font-semibold text-dark-200 mb-4">Land-Use Distribution</h3>
+          <h3 className="font-semibold text-slate-800 mb-4">Land-Use Distribution</h3>
           {luData.length > 0 ? (
             <ResponsiveContainer width="100%" height={220}>
               <BarChart data={luData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                 <XAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 11 }}
                        angle={-25} textAnchor="end" height={50} />
                 <YAxis tick={{ fill: '#64748b', fontSize: 11 }} />
                 <Tooltip
-                  contentStyle={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 8 }}
-                  labelStyle={{ color: '#e2e8f0' }}
+                  contentStyle={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 8 }}
+                  labelStyle={{ color: '#1e293b' }}
                 />
                 <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                   {luData.map((_, i) => (
@@ -215,7 +215,7 @@ export default function DashboardPage() {
               </BarChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-[220px] flex items-center justify-center text-dark-500 text-sm">
+            <div className="h-[220px] flex items-center justify-center text-slate-400 text-sm">
               No parcel data yet. Seed data or add parcels.
             </div>
           )}
@@ -223,7 +223,7 @@ export default function DashboardPage() {
 
         {/* Detection severity */}
         <div className="glass-card p-5">
-          <h3 className="font-semibold text-dark-200 mb-4">Detection Severity</h3>
+          <h3 className="font-semibold text-slate-800 mb-4">Detection Severity</h3>
           {sevData.length > 0 ? (
             <ResponsiveContainer width="100%" height={220}>
               <PieChart>
@@ -238,12 +238,12 @@ export default function DashboardPage() {
                   })}
                 </Pie>
                 <Tooltip
-                  contentStyle={{ background: '#1e293b', border: '1px solid #334155', borderRadius: 8 }}
+                  contentStyle={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 8 }}
                 />
               </PieChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-[220px] flex items-center justify-center text-dark-500 text-sm">
+            <div className="h-[220px] flex items-center justify-center text-slate-400 text-sm">
               No detections yet. Run the detection engine to get started.
             </div>
           )}
@@ -254,26 +254,26 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         <button onClick={() => navigate('/map')} className="glass-card-hover p-5 text-left flex items-center gap-4 group"
                 id="quick-map-btn">
-          <div className="w-10 h-10 rounded-xl bg-accent-blue/15 flex items-center justify-center text-accent-blue">
+          <div className="w-10 h-10 rounded-xl bg-accent-blue/15 flex items-center justify-center text-blue-600">
             <Map size={20} />
           </div>
           <div className="flex-1">
-            <div className="font-semibold text-dark-200 text-sm">Open GIS Map</div>
-            <div className="text-dark-500 text-xs">View parcel boundaries</div>
+            <div className="font-semibold text-slate-800 text-sm">Open GIS Map</div>
+            <div className="text-slate-400 text-xs">View parcel boundaries</div>
           </div>
-          <ArrowRight size={16} className="text-dark-600 group-hover:text-accent-blue transition-colors" />
+          <ArrowRight size={16} className="text-slate-400 group-hover:text-blue-600 transition-colors" />
         </button>
 
         <button onClick={() => navigate('/parcels')} className="glass-card-hover p-5 text-left flex items-center gap-4 group"
                 id="quick-parcels-btn">
-          <div className="w-10 h-10 rounded-xl bg-navy-600/20 flex items-center justify-center text-navy-400">
+          <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600">
             <FileText size={20} />
           </div>
           <div className="flex-1">
-            <div className="font-semibold text-dark-200 text-sm">Browse Parcels</div>
-            <div className="text-dark-500 text-xs">{totalParcels} registered parcels</div>
+            <div className="font-semibold text-slate-800 text-sm">Browse Parcels</div>
+            <div className="text-slate-400 text-xs">{totalParcels} registered parcels</div>
           </div>
-          <ArrowRight size={16} className="text-dark-600 group-hover:text-navy-400 transition-colors" />
+          <ArrowRight size={16} className="text-slate-400 group-hover:text-blue-600 transition-colors" />
         </button>
 
         <button onClick={() => navigate('/detections')} className="glass-card-hover p-5 text-left flex items-center gap-4 group"
@@ -282,10 +282,10 @@ export default function DashboardPage() {
             <AlertTriangle size={20} />
           </div>
           <div className="flex-1">
-            <div className="font-semibold text-dark-200 text-sm">Review Detections</div>
-            <div className="text-dark-500 text-xs">{pendingDetections} pending</div>
+            <div className="font-semibold text-slate-800 text-sm">Review Detections</div>
+            <div className="text-slate-400 text-xs">{pendingDetections} pending</div>
           </div>
-          <ArrowRight size={16} className="text-dark-600 group-hover:text-amber-400 transition-colors" />
+          <ArrowRight size={16} className="text-slate-400 group-hover:text-amber-400 transition-colors" />
         </button>
 
         <button onClick={() => navigate('/cases')} className="glass-card-hover p-5 text-left flex items-center gap-4 group"
@@ -294,19 +294,19 @@ export default function DashboardPage() {
             <Briefcase size={20} />
           </div>
           <div className="flex-1">
-            <div className="font-semibold text-dark-200 text-sm">View Cases</div>
-            <div className="text-dark-500 text-xs">{stats?.cases?.open ?? 0} open cases</div>
+            <div className="font-semibold text-slate-800 text-sm">View Cases</div>
+            <div className="text-slate-400 text-xs">{stats?.cases?.open ?? 0} open cases</div>
           </div>
-          <ArrowRight size={16} className="text-dark-600 group-hover:text-emerald-400 transition-colors" />
+          <ArrowRight size={16} className="text-slate-400 group-hover:text-emerald-400 transition-colors" />
         </button>
       </div>
 
       {/* Recent detections */}
       {recentDetections.length > 0 && (
         <div className="glass-card">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-dark-700/50">
-            <h3 className="font-semibold text-dark-200">Recent Detections</h3>
-            <button onClick={() => navigate('/detections')} className="text-accent-blue text-xs hover:underline">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200/80">
+            <h3 className="font-semibold text-slate-800">Recent Detections</h3>
+            <button onClick={() => navigate('/detections')} className="text-blue-600 text-xs hover:underline">
               View all →
             </button>
           </div>
@@ -324,17 +324,17 @@ export default function DashboardPage() {
               <tbody>
                 {recentDetections.map(d => (
                   <tr key={d.id} className="cursor-pointer" onClick={() => navigate('/detections')}>
-                    <td className="font-mono text-xs text-accent-blue">{d.parcel?.parcel_id || d.parcel_id?.slice(0, 8)}</td>
+                    <td className="font-mono text-xs text-blue-600">{d.parcel?.parcel_id || d.parcel_id?.slice(0, 8)}</td>
                     <td>
                       <span className={`badge badge-${d.severity.toLowerCase()}`}>{d.severity}</span>
                     </td>
                     <td>
-                      <span className="text-xs text-dark-400">{d.review_status}</span>
+                      <span className="text-xs text-slate-500">{d.review_status}</span>
                     </td>
                     <td className="font-mono text-xs">
                       {d.area_difference_pct != null ? `${d.area_difference_pct.toFixed(1)}%` : '—'}
                     </td>
-                    <td className="text-xs text-dark-500">
+                    <td className="text-xs text-slate-400">
                       {d.detected_at ? new Date(d.detected_at).toLocaleDateString() : '—'}
                     </td>
                   </tr>

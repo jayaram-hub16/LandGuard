@@ -65,11 +65,12 @@ const MODEL_CARDS: ModelCard[] = [
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; cls: string; icon: React.ReactNode }> = {
-    available:      { label: 'Available',      cls: 'bg-green-900/40 text-green-300 border border-green-700',   icon: <CheckCircle2 size={12} /> },
-    not_configured: { label: 'Not Configured', cls: 'bg-amber-900/40 text-amber-300 border border-amber-700',   icon: <AlertTriangle size={12} /> },
-    processing:     { label: 'Processing',     cls: 'bg-blue-900/40 text-blue-300 border border-blue-700',      icon: <Loader2 size={12} className="animate-spin" /> },
-    completed:      { label: 'Completed',      cls: 'bg-green-900/40 text-green-300 border border-green-700',   icon: <CheckCircle2 size={12} /> },
-    failed:         { label: 'Failed',         cls: 'bg-red-900/40 text-red-300 border border-red-700',         icon: <XCircle size={12} /> },
+    available:      { label: 'Available',      cls: 'bg-green-50 text-green-700 border border-green-200',   icon: <CheckCircle2 size={12} /> },
+    not_configured: { label: 'Not Configured', cls: 'bg-amber-50 text-amber-700 border border-amber-200',   icon: <AlertTriangle size={12} /> },
+    processing:     { label: 'Processing',     cls: 'bg-blue-50 text-blue-700 border border-blue-200',      icon: <Loader2 size={12} className="animate-spin" /> },
+    error:          { label: 'Error',          cls: 'bg-red-50 text-red-700 border border-red-200',         icon: <XCircle size={12} /> },
+    completed:      { label: 'Completed',      cls: 'bg-green-50 text-green-700 border border-green-200',   icon: <CheckCircle2 size={12} /> },
+    failed:         { label: 'Failed',         cls: 'bg-red-50 text-red-700 border border-red-200',         icon: <XCircle size={12} /> },
   }
   const { label, cls, icon } = map[status] ?? map.not_configured
   return (
@@ -168,17 +169,17 @@ export default function AIGISModelCentrePage() {
           return (
             <div
               key={card.key}
-              className="bg-slate-800/60 border border-slate-700 rounded-2xl p-5 flex flex-col gap-4 hover:border-slate-500 transition group"
+              className="glass-card-hover p-5 flex flex-col gap-4 group"
             >
               {/* Card header */}
               <div className="flex items-start gap-3">
-                <div className={`p-2.5 rounded-xl bg-gradient-to-br ${card.iconBg} text-white shrink-0`}>
+                <div className={`p-2.5 rounded-xl bg-gradient-to-br ${card.iconBg} text-white shrink-0 shadow-sm`}>
                   {card.icon}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap mb-1">
-                    <h2 className="text-white font-semibold text-sm leading-tight">
-                      {loading ? <span className="text-slate-500">Loading…</span> : (info?.name ?? card.key)}
+                    <h2 className="text-slate-900 font-semibold text-sm leading-tight">
+                      {loading ? <span className="text-slate-400">Loading…</span> : (info?.name ?? card.key)}
                     </h2>
                   </div>
                   {!loading && info && <StatusBadge status={info.status} />}
@@ -187,31 +188,31 @@ export default function AIGISModelCentrePage() {
 
               {/* Description */}
               {!loading && info && (
-                <p className="text-slate-400 text-xs leading-relaxed flex-1">
+                <p className="text-slate-500 text-xs leading-relaxed flex-1">
                   {info.description}
                 </p>
               )}
 
               {/* Not-configured requirements */}
               {!loading && info?.status === 'not_configured' && info.reason && (
-                <div className="bg-amber-950/40 border border-amber-800/50 rounded-lg p-3">
-                  <div className="flex items-center gap-1.5 text-amber-400 text-xs font-semibold mb-1">
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                  <div className="flex items-center gap-1.5 text-amber-700 text-xs font-semibold mb-1">
                     <Info size={12} /> Configuration Required
                   </div>
-                  <p className="text-amber-300/80 text-xs leading-relaxed">{info.reason}</p>
+                  <p className="text-amber-800/80 text-xs leading-relaxed">{info.reason}</p>
                 </div>
               )}
 
               {/* Last run info */}
               {!loading && hasLastRun && (
-                <div className="text-xs text-slate-400">
+                <div className="text-xs text-slate-500">
                   Last run:{' '}
-                  <span className={lastRunCompleted ? 'text-green-400' : 'text-red-400'}>
+                  <span className={lastRunCompleted ? 'text-green-600 font-medium' : 'text-red-600 font-medium'}>
                     {info.last_run!.run_status}
                   </span>
-                  {dateStr && <span className="ml-1 text-slate-500">· {dateStr}</span>}
+                  {dateStr && <span className="ml-1 text-slate-400">· {dateStr}</span>}
                   {info.last_run?.confidence != null && (
-                    <span className="ml-1 text-slate-500">
+                    <span className="ml-1 text-slate-400">
                       · {(info.last_run.confidence * 100).toFixed(0)}% avg confidence
                     </span>
                   )}
@@ -222,7 +223,7 @@ export default function AIGISModelCentrePage() {
               <div className="flex items-center gap-2 mt-auto">
                 <button
                   onClick={() => navigate(card.route)}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium transition"
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg btn-primary text-xs font-medium transition"
                 >
                   {info?.status === 'not_configured' ? 'View Requirements' : 'Open Model'}
                   <ChevronRight size={13} />
@@ -230,7 +231,7 @@ export default function AIGISModelCentrePage() {
                 {!loading && lastRunCompleted && (
                   <button
                     onClick={() => navigate(card.route)}
-                    className="py-2 px-3 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 text-xs font-medium transition"
+                    className="py-2 px-3 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium transition border border-slate-200"
                   >
                     Results
                   </button>

@@ -5,7 +5,7 @@ import { adminAPI } from '../../services/api'
 import type { AuditLog } from '../../types'
 
 const ACTION_COLORS: Record<string, string> = {
-  USER_SIGNUP: 'text-green-400', USER_LOGIN: 'text-blue-400', USER_LOGOUT: 'text-dark-400',
+  USER_SIGNUP: 'text-green-400', USER_LOGIN: 'text-blue-400', USER_LOGOUT: 'text-slate-500',
   PARCEL_CREATED: 'text-cyan-400', PARCEL_UPDATED: 'text-amber-400', PARCEL_DELETED: 'text-red-400',
   DETECTION_REVIEWED: 'text-violet-400', DETECTION_RUN: 'text-orange-400',
   USER_STATUS_CHANGED: 'text-pink-400', USER_ROLE_CHANGED: 'text-yellow-400',
@@ -37,10 +37,10 @@ export default function AdminAuditPage() {
     <div className="space-y-4 animate-fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold text-dark-100 flex items-center gap-2">
-            <Activity size={20} className="text-accent-cyan" /> Audit Logs
+          <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+            <Activity size={20} className="text-sky-600" /> Audit Logs
           </h1>
-          <p className="text-dark-500 text-sm">{total} immutable audit records</p>
+          <p className="text-slate-400 text-sm">{total} immutable audit records</p>
         </div>
         <button onClick={() => load()} className="btn-ghost p-2" id="audit-refresh-btn">
           <RefreshCw size={16} />
@@ -49,7 +49,7 @@ export default function AdminAuditPage() {
 
       <div className="glass-card p-4 flex gap-3">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-dark-500" size={14} />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
           <input
             id="audit-search-input"
             type="text"
@@ -66,12 +66,12 @@ export default function AdminAuditPage() {
 
       <div className="glass-card overflow-hidden">
         {loading ? (
-          <div className="flex items-center justify-center py-16 gap-2 text-dark-400">
+          <div className="flex items-center justify-center py-16 gap-2 text-slate-500">
             <Loader2 size={18} className="animate-spin" /> Loading audit logs...
           </div>
         ) : logs.length === 0 ? (
-          <div className="py-16 text-center text-dark-500">
-            <Activity size={36} className="text-dark-700 mx-auto mb-3" />
+          <div className="py-16 text-center text-slate-400">
+            <Activity size={36} className="text-slate-300 mx-auto mb-3" />
             No audit records found.
           </div>
         ) : (
@@ -90,25 +90,25 @@ export default function AdminAuditPage() {
               <tbody>
                 {logs.map(log => (
                   <tr key={log.id}>
-                    <td className="text-xs text-dark-500 font-mono whitespace-nowrap">
+                    <td className="text-xs text-slate-400 font-mono whitespace-nowrap">
                       {log.timestamp ? new Date(log.timestamp).toLocaleString() : '—'}
                     </td>
-                    <td className="text-xs text-dark-400">{log.actor_email || 'system'}</td>
+                    <td className="text-xs text-slate-500">{log.actor_email || 'system'}</td>
                     <td>
-                      <span className={`font-mono text-xs font-semibold ${ACTION_COLORS[log.action] || 'text-dark-400'}`}>
+                      <span className={`font-mono text-xs font-semibold ${ACTION_COLORS[log.action] || 'text-slate-500'}`}>
                         {log.action}
                       </span>
                     </td>
-                    <td className="text-xs text-dark-500">{log.entity_type || '—'}</td>
-                    <td className="font-mono text-xs text-dark-600">{log.entity_id?.slice(0, 12) || '—'}</td>
-                    <td className="text-xs text-dark-600">{log.ip_address || '—'}</td>
+                    <td className="text-xs text-slate-400">{log.entity_type || '—'}</td>
+                    <td className="font-mono text-xs text-slate-400">{log.entity_id?.slice(0, 12) || '—'}</td>
+                    <td className="text-xs text-slate-400">{log.ip_address || '—'}</td>
                   </tr>
                 ))}
               </tbody>
             </table>
             {pages > 1 && (
-              <div className="flex items-center justify-between px-4 py-3 border-t border-dark-700/50">
-                <span className="text-xs text-dark-500">Page {page} of {pages}</span>
+              <div className="flex items-center justify-between px-4 py-3 border-t border-slate-200/80">
+                <span className="text-xs text-slate-400">Page {page} of {pages}</span>
                 <div className="flex gap-2">
                   <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
                           className="btn-ghost p-1.5 disabled:opacity-40"><ChevronLeft size={16} /></button>

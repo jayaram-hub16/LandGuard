@@ -36,12 +36,12 @@ function CreateReportModal({ onClose, onCreated }: CreateReportModalProps) {
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       <div className="relative glass-card w-full max-w-md p-6 z-10 animate-fade-in">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold text-dark-100">Generate New Report</h3>
-          <button onClick={onClose} className="text-dark-500 hover:text-dark-300"><X size={18} /></button>
+          <h3 className="font-semibold text-slate-900">Generate New Report</h3>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-700"><X size={18} /></button>
         </div>
         <div className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-dark-400 mb-1.5 uppercase tracking-wider">Report Title</label>
+            <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">Report Title</label>
             <input
               id="report-title-input"
               type="text"
@@ -52,7 +52,7 @@ function CreateReportModal({ onClose, onCreated }: CreateReportModalProps) {
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-dark-400 mb-1.5 uppercase tracking-wider">Report Type</label>
+            <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">Report Type</label>
             <select id="report-type-select" className="input-field text-sm py-2"
                     value={form.report_type}
                     onChange={e => setForm(p => ({ ...p, report_type: e.target.value }))}>
@@ -60,7 +60,7 @@ function CreateReportModal({ onClose, onCreated }: CreateReportModalProps) {
             </select>
           </div>
           <div>
-            <label className="block text-xs font-semibold text-dark-400 mb-1.5 uppercase tracking-wider">Format</label>
+            <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">Format</label>
             <div className="flex gap-3">
               {['pdf', 'csv'].map(fmt => (
                 <button
@@ -68,8 +68,8 @@ function CreateReportModal({ onClose, onCreated }: CreateReportModalProps) {
                   onClick={() => setForm(p => ({ ...p, format: fmt }))}
                   className={`flex-1 py-2 rounded-lg border text-sm font-medium transition-all ${
                     form.format === fmt
-                      ? 'bg-navy-600/30 border-navy-500/50 text-navy-300'
-                      : 'bg-dark-800 border-dark-600 text-dark-400 hover:border-dark-500'
+                      ? 'bg-blue-50 border-blue-200 text-blue-600'
+                      : 'bg-white border-slate-300 text-slate-500 hover:border-slate-300'
                   }`}
                   id={`report-format-${fmt}`}
                 >
@@ -160,8 +160,8 @@ export default function ReportsPage() {
     <div className="space-y-4 animate-fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold text-dark-100">Reports & Exports</h1>
-          <p className="text-dark-500 text-sm">Generate and download PDF/CSV reports</p>
+          <h1 className="text-xl font-bold text-slate-900">Reports & Exports</h1>
+          <p className="text-slate-400 text-sm">Generate and download PDF/CSV reports</p>
         </div>
         <div className="flex gap-2 flex-wrap">
           <button onClick={load} className="btn-ghost p-2" id="reports-refresh-btn"><RefreshCw size={16} /></button>
@@ -197,13 +197,13 @@ export default function ReportsPage() {
 
       <div className="glass-card overflow-hidden">
         {loading ? (
-          <div className="flex items-center justify-center py-16 gap-2 text-dark-400">
+          <div className="flex items-center justify-center py-16 gap-2 text-slate-500">
             <Loader2 size={18} className="animate-spin" /> Loading reports...
           </div>
         ) : reports.length === 0 ? (
           <div className="py-16 text-center">
-            <BarChart3 size={40} className="text-dark-700 mx-auto mb-3" />
-            <p className="text-dark-500 mb-4">No reports yet. Generate your first report.</p>
+            <BarChart3 size={40} className="text-slate-300 mx-auto mb-3" />
+            <p className="text-slate-400 mb-4">No reports yet. Generate your first report.</p>
             <button onClick={() => setShowCreate(true)} className="btn-primary text-sm px-4 py-2">
               Generate Report
             </button>
@@ -222,21 +222,21 @@ export default function ReportsPage() {
             <tbody>
               {reports.map(r => (
                 <tr key={r.id}>
-                  <td className="font-medium text-dark-200">{r.title}</td>
-                  <td className="text-xs text-dark-400">{r.report_type?.replace('_', ' ')}</td>
+                  <td className="font-medium text-slate-800">{r.title}</td>
+                  <td className="text-xs text-slate-500">{r.report_type?.replace('_', ' ')}</td>
                   <td>
                     <span className={`badge text-xs ${r.format === 'pdf' ? 'badge-high' : 'badge-verified'}`}>
                       {r.format?.toUpperCase()}
                     </span>
                   </td>
-                  <td className="text-xs text-dark-500">
+                  <td className="text-xs text-slate-400">
                     {r.created_at ? new Date(r.created_at).toLocaleString() : '—'}
                   </td>
                   <td>
                     <button
                       onClick={() => handleDownload(r)}
                       disabled={downloading === r.id}
-                      className="btn-ghost p-1.5 text-dark-400 hover:text-accent-blue"
+                      className="btn-ghost p-1.5 text-slate-500 hover:text-blue-600"
                       title="Download"
                       id={`download-report-${r.id.slice(0, 8)}`}
                     >

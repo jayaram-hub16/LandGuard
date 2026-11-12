@@ -90,7 +90,7 @@ export default function LULCPage() {
       {/* Header */}
       <div className="flex items-center gap-3">
         <button onClick={() => navigate('/ai-models')}
-          className="p-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 transition">
+          className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition">
           <ChevronLeft size={16} />
         </button>
         <div className="p-2 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600">
@@ -125,7 +125,7 @@ export default function LULCPage() {
         {features.length > 0 && (
           <button
             onClick={downloadCSV}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm transition"
+            className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 shadow-sm text-sm transition"
           >
             <Download size={14} /> Download CSV
           </button>
@@ -150,7 +150,7 @@ export default function LULCPage() {
             { label: 'Total Parcels',      value: summary.parcels_total ?? 0,      color: 'text-blue-400' },
             { label: 'Avg Confidence',     value: `${((summary.average_confidence ?? 0) * 100).toFixed(1)}%`, color: 'text-purple-400' },
           ].map(s => (
-            <div key={s.label} className="bg-slate-800/50 border border-slate-700 rounded-xl p-4 text-center">
+            <div key={s.label} className="glass-card rounded-xl p-4 text-center">
               <div className={`text-2xl font-bold ${s.color}`}>{s.value}</div>
               <div className="text-slate-400 text-xs mt-1">{s.label}</div>
             </div>
@@ -198,8 +198,8 @@ export default function LULCPage() {
           </div>
 
           {/* Legend */}
-          <div className="bg-slate-800/60 border border-slate-700 rounded-xl p-5">
-            <h3 className="text-white font-semibold text-sm mb-3 flex items-center gap-2">
+          <div className="glass-card rounded-xl p-5">
+            <h3 className="text-slate-900 font-semibold text-sm mb-3 flex items-center gap-2">
               <Info size={15} className="text-indigo-400" /> Land Use Legend
             </h3>
             <div className="space-y-2">
@@ -216,13 +216,13 @@ export default function LULCPage() {
 
       {/* Results table */}
       {features.length > 0 && (
-        <div className="bg-slate-800/60 border border-slate-700 rounded-xl overflow-hidden">
+        <div className="glass-card rounded-xl overflow-hidden">
           <div className="px-5 py-3 border-b border-slate-700 text-sm font-semibold text-white">
             Classification Results ({features.length} parcels)
           </div>
           <div className="overflow-x-auto max-h-72">
             <table className="w-full text-xs">
-              <thead className="bg-slate-900/50">
+              <thead className="bg-slate-50 border-b border-slate-100">
                 <tr>
                   {['Parcel ID', 'Classified Land Use', 'Confidence', 'Registered Use', 'Area (m²)', 'District'].map(h => (
                     <th key={h} className="px-4 py-2 text-left text-slate-400 font-medium whitespace-nowrap">{h}</th>
@@ -234,7 +234,7 @@ export default function LULCPage() {
                   const feat = f as { properties: LULCFeatureProps }
                   const p = feat.properties
                   return (
-                    <tr key={p.parcel_id} className="hover:bg-slate-700/30">
+                    <tr key={p.parcel_id} className="hover:bg-blue-50/40">
                       <td className="px-4 py-2 text-slate-300 font-mono">{p.parcel_id}</td>
                       <td className="px-4 py-2">
                         <span className="flex items-center gap-1.5">
@@ -244,7 +244,7 @@ export default function LULCPage() {
                       </td>
                       <td className="px-4 py-2">
                         <div className="flex items-center gap-2">
-                          <div className="w-16 bg-slate-700 rounded-full h-1.5 overflow-hidden">
+                          <div className="w-16 bg-slate-200 rounded-full h-1.5 overflow-hidden">
                             <div
                               className="h-full rounded-full bg-green-500"
                               style={{ width: `${(p.confidence * 100).toFixed(0)}%` }}

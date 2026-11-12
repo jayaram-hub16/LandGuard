@@ -94,7 +94,7 @@ export default function BoundaryOverlapPage() {
       {/* Header */}
       <div className="flex items-center gap-3">
         <button onClick={() => navigate('/ai-models')}
-          className="p-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 transition">
+          className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition">
           <ChevronLeft size={16} />
         </button>
         <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600">
@@ -130,7 +130,7 @@ export default function BoundaryOverlapPage() {
           <>
             <button
               onClick={downloadCSV}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 text-sm transition"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 shadow-sm text-sm transition"
             >
               <Download size={14} /> Download CSV
             </button>
@@ -163,7 +163,7 @@ export default function BoundaryOverlapPage() {
             { label: 'Parcels Analysed',     value: summary.parcels_analysed ?? 0,   color: 'text-blue-400' },
             { label: 'Parcels with Overlap', value: summary.parcels_with_overlap ?? 0, color: 'text-red-400' },
           ].map(s => (
-            <div key={s.label} className="bg-slate-800/50 border border-slate-700 rounded-xl p-4 text-center">
+            <div key={s.label} className="glass-card rounded-xl p-4 text-center">
               <div className={`text-3xl font-bold ${s.color}`}>{s.value}</div>
               <div className="text-slate-400 text-xs mt-1">{s.label}</div>
             </div>
@@ -231,13 +231,13 @@ export default function BoundaryOverlapPage() {
 
       {/* Results table */}
       {displayFeatures.length > 0 && (
-        <div className="bg-slate-800/60 border border-slate-700 rounded-xl overflow-hidden">
+        <div className="glass-card rounded-xl overflow-hidden">
           <div className="px-5 py-3 border-b border-slate-700 text-sm font-semibold text-white">
             Results ({displayFeatures.length} parcels{filterOverlap ? ' with overlaps' : ''})
           </div>
           <div className="overflow-x-auto max-h-80">
             <table className="w-full text-xs">
-              <thead className="bg-slate-900/50">
+              <thead className="bg-slate-50 border-b border-slate-100">
                 <tr>
                   {['Parcel ID', 'Overlapping Parcels', 'Max Overlap (m²)', 'Max Overlap (ft²)', 'Overlap %', 'Severity', 'District'].map(h => (
                     <th key={h} className="px-4 py-2 text-left text-slate-400 font-medium whitespace-nowrap">{h}</th>
@@ -246,7 +246,7 @@ export default function BoundaryOverlapPage() {
               </thead>
               <tbody className="divide-y divide-slate-700/50">
                 {displayFeatures.map(p => (
-                  <tr key={p.parcel_id} className="hover:bg-slate-700/30">
+                  <tr key={p.parcel_id} className="hover:bg-blue-50/40">
                     <td className="px-4 py-2 text-slate-300 font-mono">{p.parcel_id}</td>
                     <td className="px-4 py-2 text-slate-400">{p.overlap_count}</td>
                     <td className="px-4 py-2 text-slate-400">{p.max_overlap_area_sqm.toFixed(1)}</td>

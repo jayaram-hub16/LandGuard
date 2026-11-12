@@ -16,19 +16,19 @@ const DISCLAIMER =
   'All findings require verification by an authorized surveyor before any action is taken.'
 
 const STATUS_COLORS: Record<string, string> = {
-  'Pending Review':                   'text-yellow-400 bg-yellow-500/10 border-yellow-500/30',
-  'Under Investigation':              'text-orange-400 bg-orange-500/10 border-orange-500/30',
-  'Field Survey Assigned':            'text-blue-400 bg-blue-500/10 border-blue-500/30',
-  'Verified by Authorized Surveyor':  'text-red-400 bg-red-500/10 border-red-500/30',
-  'False Positive':                   'text-dark-500 bg-dark-700 border-dark-600',
-  'Resolved':                         'text-green-400 bg-green-500/10 border-green-500/30',
+  'Pending Review':                   'text-amber-700 bg-amber-50 border-amber-200',
+  'Under Investigation':              'text-orange-700 bg-orange-50 border-orange-200',
+  'Field Survey Assigned':            'text-blue-700 bg-blue-50 border-blue-200',
+  'Verified by Authorized Surveyor':  'text-red-700 bg-red-50 border-red-200',
+  'False Positive':                   'text-slate-600 bg-slate-100 border-slate-200',
+  'Resolved':                         'text-green-700 bg-green-50 border-green-200',
 }
 
 const SEV_COLORS: Record<string, string> = {
-  Critical: 'text-red-400 bg-red-500/15 border-red-500/40',
-  High:     'text-orange-400 bg-orange-500/15 border-orange-500/40',
-  Medium:   'text-yellow-400 bg-yellow-500/15 border-yellow-500/40',
-  Low:      'text-green-400 bg-green-500/15 border-green-500/40',
+  Critical: 'text-red-700 bg-red-50 border-red-200',
+  High:     'text-orange-700 bg-orange-50 border-orange-200',
+  Medium:   'text-amber-700 bg-amber-50 border-amber-200',
+  Low:      'text-green-700 bg-green-50 border-green-200',
 }
 
 const MAP_STATUS_INDICATOR: Record<string, { dot: string; label: string }> = {
@@ -36,7 +36,7 @@ const MAP_STATUS_INDICATOR: Record<string, { dot: string; label: string }> = {
   'Under Investigation':              { dot: 'bg-orange-400', label: 'Under Investigation' },
   'Field Survey Assigned':            { dot: 'bg-blue-400',   label: 'Field Inspection Required' },
   'Verified by Authorized Surveyor':  { dot: 'bg-red-500',    label: 'Human-Verified Encroachment' },
-  'False Positive':                   { dot: 'bg-dark-500',   label: 'Rejected / False Positive' },
+  'False Positive':                   { dot: 'bg-slate-400',   label: 'Rejected / False Positive' },
   'Resolved':                         { dot: 'bg-green-500',  label: 'Resolved' },
 }
 
@@ -52,13 +52,13 @@ function SummaryCard({ label, count, icon, color, onClick }: SummaryCardProps) {
   return (
     <button
       onClick={onClick}
-      className={`glass-card p-4 text-left hover:scale-[1.02] transition-transform w-full ${onClick ? 'cursor-pointer' : 'cursor-default'}`}
+      className={`glass-card p-4 text-left hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-300 w-full ${onClick ? 'cursor-pointer' : 'cursor-default'}`}
     >
       <div className="flex items-start justify-between">
-        <div className={`p-2 rounded-lg ${color}`}>{icon}</div>
-        <span className="text-2xl font-bold text-dark-100">{count}</span>
+        <div className={`p-2 rounded-lg shadow-sm ${color}`}>{icon}</div>
+        <span className="text-2xl font-bold text-slate-900">{count}</span>
       </div>
-      <div className="mt-2 text-xs text-dark-400 font-medium">{label}</div>
+      <div className="mt-2 text-xs text-slate-500 font-medium">{label}</div>
     </button>
   )
 }
@@ -102,7 +102,7 @@ export default function OccupationMonitorPage() {
 
   if (loading) return (
     <div className="flex items-center justify-center h-64">
-      <Loader2 size={24} className="animate-spin text-dark-400" />
+      <Loader2 size={24} className="animate-spin text-slate-500" />
     </div>
   )
 
@@ -113,11 +113,11 @@ export default function OccupationMonitorPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold text-dark-100 flex items-center gap-2">
+          <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
             <Shield size={20} className="text-orange-400" />
             Unauthorized Occupation Monitoring
           </h1>
-          <p className="text-dark-500 text-xs mt-0.5">
+          <p className="text-slate-400 text-xs mt-0.5">
             AI-assisted detection · Requires surveyor verification · Not a legal determination
           </p>
         </div>
@@ -186,7 +186,7 @@ export default function OccupationMonitorPage() {
           label="Rejected / False"
           count={s?.rejected_false ?? 0}
           icon={<XCircle size={16} />}
-          color="bg-dark-700 text-dark-400"
+          color="bg-slate-100 text-slate-500"
           onClick={() => { setFilterStatus('False Positive'); setFilterSeverity('') }}
         />
         <SummaryCard
@@ -201,53 +201,53 @@ export default function OccupationMonitorPage() {
       {/* Case & Detection totals */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="glass-card p-4 flex items-center gap-3">
-          <TrendingUp size={20} className="text-accent-blue" />
+          <TrendingUp size={20} className="text-blue-600" />
           <div>
-            <div className="text-xl font-bold text-dark-100">{s?.total_detections ?? 0}</div>
-            <div className="text-xs text-dark-500">Total Detections</div>
+            <div className="text-xl font-bold text-slate-900">{s?.total_detections ?? 0}</div>
+            <div className="text-xs text-slate-400">Total Detections</div>
           </div>
         </div>
         <div className="glass-card p-4 flex items-center gap-3">
           <FileText size={20} className="text-purple-400" />
           <div>
-            <div className="text-xl font-bold text-dark-100">{s?.total_cases ?? 0}</div>
-            <div className="text-xs text-dark-500">Total Cases</div>
+            <div className="text-xl font-bold text-slate-900">{s?.total_cases ?? 0}</div>
+            <div className="text-xs text-slate-400">Total Cases</div>
           </div>
         </div>
         <div className="glass-card p-4 flex items-center gap-3">
           <Clock size={20} className="text-orange-400" />
           <div>
-            <div className="text-xl font-bold text-dark-100">{s?.open_cases ?? 0}</div>
-            <div className="text-xs text-dark-500">Open Cases</div>
+            <div className="text-xl font-bold text-slate-900">{s?.open_cases ?? 0}</div>
+            <div className="text-xs text-slate-400">Open Cases</div>
           </div>
         </div>
       </div>
 
       {/* Map Legend */}
       <div className="glass-card p-4">
-        <div className="text-xs font-semibold text-dark-400 uppercase tracking-wider mb-3">
+        <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">
           GIS Map Colour Code — Detection Status
         </div>
         <div className="flex flex-wrap gap-4">
           {Object.entries(MAP_STATUS_INDICATOR).map(([status, { dot, label }]) => (
             <div key={status} className="flex items-center gap-2">
               <div className={`w-3 h-3 rounded-full flex-shrink-0 ${dot}`} />
-              <span className="text-xs text-dark-400">{label}</span>
+              <span className="text-xs text-slate-500">{label}</span>
             </div>
           ))}
         </div>
-        <div className="mt-2 text-xs text-dark-600">
+        <div className="mt-2 text-xs text-slate-400">
           → View colour-coded detections on the <button
             onClick={() => navigate('/map')}
-            className="text-accent-blue hover:underline"
+            className="text-blue-600 hover:underline"
           >GIS Map</button>
         </div>
       </div>
 
       {/* Recent Detections Table */}
       <div className="glass-card">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-4 py-3 border-b border-dark-700/50">
-          <div className="text-sm font-semibold text-dark-200 flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-4 py-3 border-b border-slate-200/80">
+          <div className="text-sm font-semibold text-slate-800 flex items-center gap-2">
             <Bell size={14} className="text-orange-400" />
             Recent Detection Findings ({filtered.length} shown)
           </div>
@@ -287,7 +287,7 @@ export default function OccupationMonitorPage() {
         </div>
 
         {filtered.length === 0 ? (
-          <div className="p-8 text-center text-dark-500 text-sm">
+          <div className="p-8 text-center text-slate-400 text-sm">
             {stats?.summary.total_detections === 0
               ? 'No detections yet. Click "Run Detection Scan" to analyse parcels.'
               : 'No detections match the current filter.'}
@@ -296,7 +296,7 @@ export default function OccupationMonitorPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead>
-                <tr className="border-b border-dark-800 text-dark-500 uppercase tracking-wide">
+                <tr className="border-b border-slate-100 text-slate-400 uppercase tracking-wide">
                   <th className="text-left px-4 py-2">Parcel ID</th>
                   <th className="text-left px-4 py-2">Location</th>
                   <th className="text-left px-4 py-2">Severity</th>
@@ -356,13 +356,13 @@ function DetectionRow({
   ].filter(Boolean).join(', ') || '—'
 
   return (
-    <tr className="border-b border-dark-800/40 hover:bg-dark-800/30 transition-colors">
+    <tr className="border-b border-slate-100/40 hover:bg-white/30 transition-colors">
       <td className="px-4 py-3">
-        <span className="font-mono text-accent-blue font-semibold">
+        <span className="font-mono text-blue-600 font-semibold">
           {parcel?.parcel_id || '—'}
         </span>
       </td>
-      <td className="px-4 py-3 text-dark-400 max-w-[180px] truncate" title={loc}>
+      <td className="px-4 py-3 text-slate-500 max-w-[180px] truncate" title={loc}>
         {loc}
       </td>
       <td className="px-4 py-3">
@@ -375,16 +375,16 @@ function DetectionRow({
           {d.review_status}
         </span>
       </td>
-      <td className="px-4 py-3 text-dark-400">
+      <td className="px-4 py-3 text-slate-500">
         {d.model_confidence != null ? `${(d.model_confidence * 100).toFixed(0)}%` : '—'}
       </td>
-      <td className="px-4 py-3 text-dark-500">
+      <td className="px-4 py-3 text-slate-400">
         {d.detected_at ? new Date(d.detected_at).toLocaleDateString('en-IN') : '—'}
       </td>
       <td className="px-4 py-3">
         <button
           onClick={() => navigate('/detections')}
-          className="text-accent-blue hover:underline text-xs"
+          className="text-blue-600 hover:underline text-xs"
         >
           Review →
         </button>

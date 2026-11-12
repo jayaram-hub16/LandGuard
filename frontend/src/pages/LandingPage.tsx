@@ -26,14 +26,14 @@ export default function LandingPage() {
   const navigate = useNavigate()
 
   return (
-    <div className="min-h-screen bg-dark-950 text-dark-100 overflow-x-hidden">
+    <div className="min-h-screen bg-slate-50 text-slate-900 overflow-x-hidden">
       {/* ── Nav ────────────────────────────────────── */}
-      <nav className="fixed top-0 inset-x-0 z-50 bg-dark-950/80 backdrop-blur-md
-                      border-b border-dark-800/50">
+      <nav className="fixed top-0 inset-x-0 z-50 bg-slate-50/90 backdrop-blur-md
+                      border-b border-slate-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-navy-600 to-accent-blue
-                            flex items-center justify-center shadow-glow-blue">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-sky-500
+                            flex items-center justify-center shadow-sm">
               <Shield className="w-4.5 h-4.5 text-white" size={18} />
             </div>
             <span className="text-lg font-bold gradient-text">LandGuard</span>
@@ -62,27 +62,27 @@ export default function LandingPage() {
         {/* Background glow */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px]
-                          rounded-full bg-navy-900/40 blur-3xl" />
+                          rounded-full bg-blue-100/40 blur-3xl" />
           <div className="absolute top-1/3 left-1/4 w-[300px] h-[300px]
-                          rounded-full bg-accent-blue/5 blur-3xl" />
+                          rounded-full bg-blue-50/50 blur-3xl" />
           <div className="absolute top-1/3 right-1/4 w-[300px] h-[300px]
-                          rounded-full bg-accent-cyan/5 blur-3xl" />
+                          rounded-full bg-sky-50/50 blur-3xl" />
         </div>
 
         <div className="max-w-4xl mx-auto text-center relative z-10">
-          <div className="inline-flex items-center gap-2 bg-navy-900/60 border border-navy-700/40
-                          rounded-full px-4 py-1.5 text-sm text-navy-300 mb-8 animate-fade-in">
-            <span className="w-2 h-2 rounded-full bg-accent-green animate-pulse" />
+          <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-200/60
+                          rounded-full px-4 py-1.5 text-sm text-blue-700 mb-8 animate-fade-in shadow-sm">
+            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
             SIMULATED DATA — Municipal Survey Intelligence Platform
           </div>
 
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black leading-tight mb-6 animate-fade-in">
-            <span className="text-dark-100">Detect Land</span><br />
+            <span className="text-slate-900">Detect Land</span><br />
             <span className="gradient-text">Encroachment</span><br />
-            <span className="text-dark-100">with GIS Precision</span>
+            <span className="text-slate-900">with GIS Precision</span>
           </h1>
 
-          <p className="text-lg sm:text-xl text-dark-400 max-w-2xl mx-auto mb-10 leading-relaxed animate-fade-in">
+          <p className="text-lg sm:text-xl text-slate-500 max-w-2xl mx-auto mb-10 leading-relaxed animate-fade-in">
             LandGuard helps municipal survey departments identify unauthorized construction,
             boundary disputes, and land-use mismatches by comparing registered boundaries
             against observed satellite and GIS data.
@@ -108,12 +108,12 @@ export default function LandingPage() {
       </section>
 
       {/* ── Stats ──────────────────────────────────── */}
-      <section className="py-12 border-y border-dark-800/50 bg-dark-900/40">
+      <section className="py-12 border-y border-slate-100 bg-white/40">
         <div className="max-w-5xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-6">
           {stats.map(s => (
             <div key={s.label} className="text-center">
               <div className="text-3xl font-black gradient-text mb-1">{s.value}</div>
-              <div className="text-sm text-dark-500">{s.label}</div>
+              <div className="text-sm text-slate-400">{s.label}</div>
             </div>
           ))}
         </div>
@@ -126,7 +126,7 @@ export default function LandingPage() {
             <h2 className="text-3xl sm:text-4xl font-bold mb-4">
               Full-Stack GIS Detection Platform
             </h2>
-            <p className="text-dark-400 text-lg max-w-2xl mx-auto">
+            <p className="text-slate-500 text-lg max-w-2xl mx-auto">
               Everything a municipal survey department needs to systematically identify
               and track potential land encroachments.
             </p>
@@ -135,13 +135,13 @@ export default function LandingPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {features.map((f, i) => (
               <div key={i} className="glass-card-hover p-6">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-navy-600/30 to-accent-blue/20
-                                border border-navy-500/20 flex items-center justify-center mb-4
-                                text-accent-blue">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-100 to-sky-100
+                                border border-blue-200 flex items-center justify-center mb-4
+                                text-blue-600 shadow-sm">
                   {f.icon}
                 </div>
-                <h3 className="font-semibold text-dark-100 mb-2">{f.title}</h3>
-                <p className="text-dark-400 text-sm leading-relaxed">{f.desc}</p>
+                <h3 className="font-semibold text-slate-900 mb-2">{f.title}</h3>
+                <p className="text-slate-500 text-sm leading-relaxed">{f.desc}</p>
               </div>
             ))}
           </div>
@@ -149,7 +149,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── Disclaimer ─────────────────────────────── */}
-      <section className="py-10 px-4 bg-dark-900/40 border-y border-dark-800/50">
+      <section className="py-10 px-4 bg-white/40 border-y border-slate-100">
         <div className="max-w-4xl mx-auto">
           <div className="disclaimer-box">
             <div className="flex items-start gap-2">
@@ -175,7 +175,7 @@ export default function LandingPage() {
           <h2 className="text-3xl sm:text-4xl font-bold mb-4">
             Ready to get started?
           </h2>
-          <p className="text-dark-400 mb-8">
+          <p className="text-slate-500 mb-8">
             Create your free account and explore the GIS detection platform.
           </p>
           <button
@@ -189,12 +189,12 @@ export default function LandingPage() {
       </section>
 
       {/* ── Footer ─────────────────────────────────── */}
-      <footer className="border-t border-dark-800/50 py-8 px-4 text-center">
+      <footer className="border-t border-slate-100 py-8 px-4 text-center">
         <div className="flex items-center justify-center gap-2 mb-2">
-          <Shield size={16} className="text-accent-blue" />
-          <span className="text-dark-400 text-sm font-semibold">LandGuard</span>
+          <Shield size={16} className="text-blue-600" />
+          <span className="text-slate-500 text-sm font-semibold">LandGuard</span>
         </div>
-        <p className="text-dark-600 text-xs">
+        <p className="text-slate-400 text-xs">
           GIS-Based Land Encroachment Detection Platform · Simulated Data Only · v1.0.0
         </p>
       </footer>

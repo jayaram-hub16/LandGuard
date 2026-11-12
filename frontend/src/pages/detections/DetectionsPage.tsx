@@ -43,33 +43,33 @@ function ReviewModal({ detection, onClose, onSaved }: ReviewModalProps) {
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
       <div className="relative glass-card w-full max-w-lg p-6 z-10 animate-fade-in">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold text-dark-100">Review Detection</h3>
-          <button onClick={onClose} className="text-dark-500 hover:text-dark-300"><X size={18} /></button>
+          <h3 className="font-semibold text-slate-900">Review Detection</h3>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-700"><X size={18} /></button>
         </div>
 
         <div className="disclaimer-box mb-4 text-xs">{detection.disclaimer}</div>
 
         <div className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-dark-400 mb-1.5 uppercase tracking-wider">Reason</label>
-            <p className="text-sm text-dark-300 bg-dark-800/50 rounded-lg p-3 leading-relaxed">
+            <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">Reason</label>
+            <p className="text-sm text-slate-700 bg-slate-50 border border-slate-200/60 rounded-lg p-3 leading-relaxed">
               {detection.detection_reason}
             </p>
           </div>
 
           <div className="grid grid-cols-2 gap-3 text-sm">
-            <div className="bg-dark-800/40 rounded-lg p-3">
-              <div className="text-xs text-dark-500">Severity</div>
+            <div className="bg-slate-50 border border-slate-200/60 rounded-lg p-3">
+              <div className="text-xs text-slate-400">Severity</div>
               <span className={`badge badge-${detection.severity.toLowerCase()} mt-1`}>{detection.severity}</span>
             </div>
-            <div className="bg-dark-800/40 rounded-lg p-3">
-              <div className="text-xs text-dark-500">Area Diff</div>
-              <div className="font-mono text-sm mt-0.5">{detection.area_difference_pct?.toFixed(1)}%</div>
+            <div className="bg-slate-50 border border-slate-200/60 rounded-lg p-3">
+              <div className="text-xs text-slate-400">Area Diff</div>
+              <div className="font-mono text-sm mt-0.5 text-slate-800">{detection.area_difference_pct?.toFixed(1)}%</div>
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-dark-400 mb-1.5 uppercase tracking-wider">
+            <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">
               Review Status
             </label>
             <select
@@ -83,7 +83,7 @@ function ReviewModal({ detection, onClose, onSaved }: ReviewModalProps) {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-dark-400 mb-1.5 uppercase tracking-wider">
+            <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">
               Reviewer Notes
             </label>
             <textarea
@@ -154,18 +154,18 @@ export default function DetectionsPage() {
 
   const statusColor = (s: string) => {
     if (s.includes('Verified')) return 'text-green-400'
-    if (s.includes('False')) return 'text-dark-500'
+    if (s.includes('False')) return 'text-slate-400'
     if (s.includes('Resolved')) return 'text-blue-400'
     if (s.includes('Investigation')) return 'text-amber-400'
-    return 'text-dark-400'
+    return 'text-slate-500'
   }
 
   return (
     <div className="space-y-4 animate-fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold text-dark-100">Encroachment Detections</h1>
-          <p className="text-dark-500 text-sm">{total} detection records — preliminary findings only</p>
+          <h1 className="text-xl font-bold text-slate-900">Encroachment Detections</h1>
+          <p className="text-slate-400 text-sm">{total} detection records — preliminary findings only</p>
         </div>
         <button onClick={load} className="btn-ghost p-2 self-start" id="detections-refresh-btn">
           <RefreshCw size={16} />
@@ -182,7 +182,7 @@ export default function DetectionsPage() {
       {/* Filters */}
       <div className="glass-card p-4 flex flex-wrap gap-3">
         <div className="relative flex-1 min-w-[160px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-dark-500" size={14} />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
           <input
             id="detections-search"
             type="text"
@@ -207,13 +207,13 @@ export default function DetectionsPage() {
       <div className="glass-card overflow-hidden">
         <div className="overflow-x-auto">
           {loading ? (
-            <div className="flex items-center justify-center py-16 text-dark-400 gap-2">
+            <div className="flex items-center justify-center py-16 text-slate-500 gap-2">
               <Loader2 size={18} className="animate-spin" /> Loading detections...
             </div>
           ) : detections.length === 0 ? (
             <div className="py-16 text-center">
-              <AlertTriangle size={40} className="text-dark-700 mx-auto mb-3" />
-              <p className="text-dark-500">No detections found. Run the detection engine from the dashboard.</p>
+              <AlertTriangle size={40} className="text-slate-300 mx-auto mb-3" />
+              <p className="text-slate-400">No detections found. Run the detection engine from the dashboard.</p>
             </div>
           ) : (
             <table className="data-table">
@@ -234,7 +234,7 @@ export default function DetectionsPage() {
               <tbody>
                 {detections.map(d => (
                   <tr key={d.id} title={d.detection_reason}>
-                    <td className="font-mono text-xs text-accent-blue">{d.parcel?.parcel_id || d.parcel_id?.slice(0, 8)}</td>
+                    <td className="font-mono text-xs text-blue-600">{d.parcel?.parcel_id || d.parcel_id?.slice(0, 8)}</td>
                     <td>{severityBadge(d.severity)}</td>
                     <td><span className={`text-xs ${statusColor(d.review_status)}`}>{d.review_status}</span></td>
                     <td className="text-xs">{d.detected_land_use || '—'}</td>
@@ -247,17 +247,17 @@ export default function DetectionsPage() {
                           </span>
                         : '—'}
                     </td>
-                    <td className="text-xs text-dark-500">
+                    <td className="text-xs text-slate-400">
                       {d.model_confidence ? `${(d.model_confidence * 100).toFixed(0)}%` : '—'}
                     </td>
-                    <td className="text-xs text-dark-500">
+                    <td className="text-xs text-slate-400">
                       {d.detected_at ? new Date(d.detected_at).toLocaleDateString() : '—'}
                     </td>
                     {isAdmin() && (
                       <td>
                         <button
                           onClick={() => setReviewTarget(d)}
-                          className="btn-ghost p-1.5 text-dark-400 hover:text-accent-blue"
+                          className="btn-ghost p-1.5 text-slate-500 hover:text-blue-600"
                           title="Review"
                           id={`review-btn-${d.id.slice(0, 8)}`}
                         >
@@ -273,8 +273,8 @@ export default function DetectionsPage() {
         </div>
 
         {pages > 1 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-dark-700/50">
-            <span className="text-xs text-dark-500">Page {page} of {pages}</span>
+          <div className="flex items-center justify-between px-4 py-3 border-t border-slate-200/80">
+            <span className="text-xs text-slate-400">Page {page} of {pages}</span>
             <div className="flex gap-2">
               <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
                       className="btn-ghost p-1.5 disabled:opacity-40"><ChevronLeft size={16} /></button>

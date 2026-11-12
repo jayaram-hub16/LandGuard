@@ -56,6 +56,8 @@ export default {
         'slide-in': 'slideIn 0.3s ease-out',
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         'float': 'float 6s ease-in-out infinite',
+        'card-rise': 'cardRise 0.3s ease-out',
+        'slide-up': 'slideUp 0.4s ease-out',
       },
       keyframes: {
         fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
@@ -63,6 +65,14 @@ export default {
         float: {
           '0%, 100%': { transform: 'translateY(0px)' },
           '50%': { transform: 'translateY(-10px)' },
+        },
+        slideUp: {
+          '0%': { transform: 'translateY(8px)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
+        cardRise: {
+          '0%': { transform: 'translateY(0) scale(1)' },
+          '100%': { transform: 'translateY(-2px) scale(1.005)' },
         }
       },
       boxShadow: {
@@ -70,6 +80,9 @@ export default {
         'glow-blue': '0 0 20px rgba(59, 130, 246, 0.3)',
         'glow-cyan': '0 0 20px rgba(6, 182, 212, 0.3)',
         'glow-red': '0 0 20px rgba(239, 68, 68, 0.3)',
+        'card': '0 1px 3px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.06)',
+        'card-hover': '0 8px 32px rgba(37,99,235,0.12), 0 2px 8px rgba(0,0,0,0.08)',
+        'glow-blue-sm': '0 0 12px rgba(37,99,235,0.2)',
       }
     },
   },

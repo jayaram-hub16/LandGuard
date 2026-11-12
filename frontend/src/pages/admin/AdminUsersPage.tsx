@@ -127,10 +127,10 @@ export default function AdminUsersPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold text-dark-100 flex items-center gap-2">
+          <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
             <Users size={20} className="text-violet-400" /> User Management
           </h1>
-          <p className="text-dark-500 text-sm">{total} registered accounts</p>
+          <p className="text-slate-400 text-sm">{total} registered accounts</p>
         </div>
         <div className="flex gap-2">
           <button onClick={() => load()} className="btn-ghost p-2" id="users-refresh-btn">
@@ -149,7 +149,7 @@ export default function AdminUsersPage() {
       {/* Search */}
       <div className="glass-card p-3 flex gap-2">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-dark-500" size={14} />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={14} />
           <input
             id="users-search-input"
             type="text"
@@ -166,12 +166,12 @@ export default function AdminUsersPage() {
       </div>
 
       {actionMsg && (
-        <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3 text-green-400 text-sm flex items-center gap-2">
+        <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-green-700 text-sm flex items-center gap-2">
           <CheckCircle size={14} /> {actionMsg}
         </div>
       )}
       {error && (
-        <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 text-red-400 text-sm flex items-center gap-2">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-red-700 text-sm flex items-center gap-2">
           <AlertCircle size={14} /> {error}
         </div>
       )}
@@ -179,7 +179,7 @@ export default function AdminUsersPage() {
       {/* Table */}
       <div className="glass-card overflow-hidden">
         {loading ? (
-          <div className="flex items-center justify-center py-16 gap-2 text-dark-400">
+          <div className="flex items-center justify-center py-16 gap-2 text-slate-500">
             <Loader2 size={18} className="animate-spin" /> Loading users...
           </div>
         ) : (
@@ -197,23 +197,23 @@ export default function AdminUsersPage() {
             </thead>
             <tbody>
               {users.length === 0 ? (
-                <tr><td colSpan={7} className="text-center text-dark-500 py-8">No users found.</td></tr>
+                <tr><td colSpan={7} className="text-center text-slate-500 py-8">No users found.</td></tr>
               ) : users.map(u => (
                 <tr key={u.id}>
                   <td>
                     <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full bg-gradient-to-br from-navy-600 to-accent-blue
+                      <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-600 to-sky-500
                                       flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
                         {u.full_name?.charAt(0) || '?'}
                       </div>
-                      <span className="text-sm font-medium text-dark-200">{u.full_name}</span>
+                      <span className="text-sm font-medium text-slate-800">{u.full_name}</span>
                       {u.id === currentUser?.id && (
                         <span className="badge badge-user text-[10px]">You</span>
                       )}
                     </div>
                   </td>
-                  <td className="text-xs text-dark-400">{u.email}</td>
-                  <td className="text-xs text-dark-500">{u.organization || '—'}</td>
+                  <td className="text-xs text-slate-500">{u.email}</td>
+                  <td className="text-xs text-slate-400">{u.organization || '—'}</td>
                   <td>
                     <span className={u.role === 'ADMIN' ? 'badge badge-admin' : 'badge badge-user'}>
                       {u.role}
@@ -224,7 +224,7 @@ export default function AdminUsersPage() {
                       {u.status}
                     </span>
                   </td>
-                  <td className="text-xs text-dark-500">
+                  <td className="text-xs text-slate-400">
                     {u.last_login ? new Date(u.last_login).toLocaleDateString() : 'Never'}
                   </td>
                   <td>
@@ -232,33 +232,33 @@ export default function AdminUsersPage() {
                       <div className="flex items-center gap-1">
                         {u.status === 'ACTIVE' ? (
                           <button onClick={() => updateStatus(u, 'INACTIVE')}
-                            className="btn-ghost p-1.5 text-dark-500 hover:text-red-400"
+                            className="btn-ghost p-1.5 text-slate-500 hover:text-red-400"
                             title="Deactivate" id={`deactivate-${u.id.slice(0, 8)}`}>
                             <UserX size={14} />
                           </button>
                         ) : (
                           <button onClick={() => updateStatus(u, 'ACTIVE')}
-                            className="btn-ghost p-1.5 text-dark-500 hover:text-green-400"
+                            className="btn-ghost p-1.5 text-slate-500 hover:text-green-400"
                             title="Activate" id={`activate-${u.id.slice(0, 8)}`}>
                             <UserCheck size={14} />
                           </button>
                         )}
                         {u.role === 'USER' ? (
                           <button onClick={() => updateRole(u, 'ADMIN')}
-                            className="btn-ghost p-1.5 text-dark-500 hover:text-violet-400"
+                            className="btn-ghost p-1.5 text-slate-500 hover:text-violet-400"
                             title="Promote to Admin" id={`promote-${u.id.slice(0, 8)}`}>
                             <ShieldCheck size={14} />
                           </button>
                         ) : (
                           <button onClick={() => updateRole(u, 'USER')}
-                            className="btn-ghost p-1.5 text-dark-500 hover:text-amber-400"
+                            className="btn-ghost p-1.5 text-slate-500 hover:text-amber-400"
                             title="Demote to User" id={`demote-${u.id.slice(0, 8)}`}>
                             <Users size={14} />
                           </button>
                         )}
                       </div>
                     ) : (
-                      <span className="text-xs text-dark-600 italic">Self</span>
+                      <span className="text-xs text-slate-300 italic">Self</span>
                     )}
                   </td>
                 </tr>
@@ -273,7 +273,7 @@ export default function AdminUsersPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="glass-card w-full max-w-md p-6 space-y-4 animate-fade-in">
             <div className="flex items-center justify-between">
-              <h2 className="font-bold text-dark-100 flex items-center gap-2">
+              <h2 className="font-bold text-slate-900 flex items-center gap-2">
                 <Users size={18} className="text-violet-400" /> Create New Account
               </h2>
               <button onClick={() => setShowAddModal(false)} className="btn-ghost p-1.5">
@@ -282,7 +282,7 @@ export default function AdminUsersPage() {
             </div>
 
             {addSuccess && (
-              <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3 text-green-400 text-sm flex items-center gap-2">
+              <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-green-700 text-sm flex items-center gap-2">
                 <CheckCircle size={14} /> {addSuccess}
               </div>
             )}
@@ -318,7 +318,7 @@ export default function AdminUsersPage() {
                     className="input-field text-sm py-2 pr-10"
                     placeholder="••••••••" value={addForm.password} onChange={setF('password')} />
                   <button type="button" onClick={() => setShowPassword(v => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-dark-500">
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500">
                     {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
                   </button>
                 </div>
@@ -330,7 +330,7 @@ export default function AdminUsersPage() {
                   placeholder="••••••••" value={addForm.confirm_password} onChange={setF('confirm_password')} />
               </AddField>
 
-              <p className="text-xs text-dark-600 italic">
+              <p className="text-xs text-slate-300 italic">
                 Passwords are stored as secure hashes. They cannot be retrieved later.
               </p>
 
@@ -357,9 +357,9 @@ function AddField({ label, error, children }: {
 }) {
   return (
     <div>
-      <label className="block text-xs font-semibold text-dark-400 mb-1 uppercase tracking-wider">{label}</label>
+      <label className="block text-xs font-semibold text-slate-500 mb-1 uppercase tracking-wider">{label}</label>
       {children}
-      {error && <p className="text-red-400 text-xs mt-1">{error}</p>}
+      {error && <p className="text-red-600 text-xs mt-1">{error}</p>}
     </div>
   )
 }

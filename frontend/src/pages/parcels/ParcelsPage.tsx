@@ -61,8 +61,8 @@ export default function ParcelsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-bold text-dark-100">Land Parcels</h1>
-          <p className="text-dark-500 text-sm">{total} registered parcels (simulated)</p>
+          <h1 className="text-xl font-bold text-slate-900">Land Parcels</h1>
+          <p className="text-slate-400 text-sm">{total} registered parcels (simulated)</p>
         </div>
         <div className="flex gap-2">
           <button onClick={() => navigate('/map')} className="btn-secondary flex items-center gap-2 text-sm px-3 py-2"
@@ -85,7 +85,7 @@ export default function ParcelsPage() {
       <div className="glass-card p-4 flex flex-wrap gap-3 items-end">
         <form onSubmit={handleSearch} className="flex gap-2 flex-1 min-w-[200px]">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-dark-500" size={14} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
             <input
               id="parcel-search-input"
               type="text"
@@ -116,7 +116,7 @@ export default function ParcelsPage() {
             'flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg border transition-all',
             flaggedOnly
               ? 'bg-red-500/20 border-red-500/40 text-red-400'
-              : 'bg-dark-800 border-dark-600 text-dark-400 hover:border-dark-500'
+              : 'bg-white border-slate-300 text-slate-500 hover:border-slate-300'
           )}
         >
           <AlertTriangle size={14} /> Flagged Only
@@ -131,13 +131,13 @@ export default function ParcelsPage() {
       <div className="glass-card overflow-hidden">
         <div className="overflow-x-auto">
           {loading ? (
-            <div className="flex items-center justify-center py-16 text-dark-400 gap-2">
+            <div className="flex items-center justify-center py-16 text-slate-500 gap-2">
               <Loader2 size={18} className="animate-spin" /> Loading parcels...
             </div>
           ) : parcels.length === 0 ? (
             <div className="py-16 text-center">
-              <FileText size={40} className="text-dark-700 mx-auto mb-3" />
-              <p className="text-dark-500">No parcels found.</p>
+              <FileText size={40} className="text-slate-300 mx-auto mb-3" />
+              <p className="text-slate-400">No parcels found.</p>
               {isAdmin() && (
                 <button onClick={() => navigate('/parcels/new')} className="btn-primary mt-4 text-sm px-4 py-2">
                   Add First Parcel
@@ -163,19 +163,19 @@ export default function ParcelsPage() {
                 {parcels.map(p => (
                   <tr key={p.id}>
                     <td>
-                      <span className="font-mono text-xs text-accent-blue font-semibold">{p.parcel_id}</span>
+                      <span className="font-mono text-xs text-blue-600 font-semibold">{p.parcel_id}</span>
                     </td>
                     <td className="text-xs">{p.owner?.owner_name || '—'}</td>
                     <td className="text-xs">{p.district || '—'}</td>
                     <td className="text-xs">{p.state || '—'}</td>
                     <td className="font-mono text-xs">{p.registered_area_sqm?.toFixed(0) || '—'}</td>
                     <td>
-                      <span className="text-xs text-dark-300">{p.registered_land_use || '—'}</span>
+                      <span className="text-xs text-slate-700">{p.registered_land_use || '—'}</span>
                     </td>
                     <td>
                       {p.is_flagged
                         ? <span className="badge badge-critical"><AlertTriangle size={10} /> Yes</span>
-                        : <span className="text-xs text-dark-600">—</span>}
+                        : <span className="text-xs text-slate-400">—</span>}
                     </td>
                     <td>
                       <span className="text-xs font-mono">{p.detection_count}</span>
@@ -184,7 +184,7 @@ export default function ParcelsPage() {
                       <div className="flex items-center gap-1">
                         <button
                           onClick={() => navigate(`/parcels/${p.parcel_id}`)}
-                          className="btn-ghost p-1.5 text-dark-400 hover:text-accent-blue"
+                          className="btn-ghost p-1.5 text-slate-500 hover:text-blue-600"
                           title="View"
                           id={`parcel-view-${p.parcel_id}`}
                         >
@@ -197,12 +197,12 @@ export default function ParcelsPage() {
                                 <button onClick={() => handleDelete(p.parcel_id)}
                                         className="text-xs text-red-400 hover:text-red-300 font-medium">Confirm</button>
                                 <button onClick={() => setDeleteConfirm(null)}
-                                        className="text-xs text-dark-500 hover:text-dark-300">Cancel</button>
+                                        className="text-xs text-slate-400 hover:text-slate-700">Cancel</button>
                               </div>
                             ) : (
                               <button
                                 onClick={() => setDeleteConfirm(p.id)}
-                                className="btn-ghost p-1.5 text-dark-500 hover:text-red-400"
+                                className="btn-ghost p-1.5 text-slate-400 hover:text-red-400"
                                 title="Delete"
                                 id={`parcel-delete-${p.parcel_id}`}
                               >
@@ -222,8 +222,8 @@ export default function ParcelsPage() {
 
         {/* Pagination */}
         {pages > 1 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-dark-700/50">
-            <span className="text-xs text-dark-500">Page {page} of {pages}</span>
+          <div className="flex items-center justify-between px-4 py-3 border-t border-slate-200/80">
+            <span className="text-xs text-slate-400">Page {page} of {pages}</span>
             <div className="flex gap-2">
               <button
                 onClick={() => setPage(p => Math.max(1, p - 1))}

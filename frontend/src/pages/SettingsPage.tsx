@@ -37,25 +37,25 @@ export default function SettingsPage() {
   return (
     <div className="space-y-5 animate-fade-in max-w-2xl">
       <div>
-        <h1 className="text-xl font-bold text-dark-100 flex items-center gap-2">
-          <Settings size={20} className="text-dark-400" /> Account Settings
+        <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+          <Settings size={20} className="text-slate-500" /> Account Settings
         </h1>
-        <p className="text-dark-500 text-sm mt-1">Manage your account preferences</p>
+        <p className="text-slate-400 text-sm mt-1">Manage your account preferences</p>
       </div>
 
       {/* Profile */}
       <div className="glass-card p-6">
-        <h2 className="font-semibold text-dark-200 mb-4 flex items-center gap-2">
-          <User size={16} className="text-accent-blue" /> Profile Information
+        <h2 className="font-semibold text-slate-800 mb-4 flex items-center gap-2">
+          <User size={16} className="text-blue-600" /> Profile Information
         </h2>
         <div className="flex items-center gap-4 mb-5">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-navy-600 to-accent-blue
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-600 to-sky-500
                           flex items-center justify-center text-white text-xl font-black">
             {user?.full_name?.charAt(0) || 'U'}
           </div>
           <div>
-            <div className="text-lg font-semibold text-dark-100">{user?.full_name}</div>
-            <div className="text-dark-500 text-sm">{user?.email}</div>
+            <div className="text-lg font-semibold text-slate-900">{user?.full_name}</div>
+            <div className="text-slate-400 text-sm">{user?.email}</div>
             <div className="flex gap-2 mt-1">
               <span className={user?.role === 'ADMIN' ? 'badge badge-admin' : 'badge badge-user'}>
                 {user?.role}
@@ -71,32 +71,32 @@ export default function SettingsPage() {
             ['Organization', user?.organization || '—'],
             ['Last Login', user?.last_login ? new Date(user.last_login).toLocaleString() : 'N/A'],
           ].map(([label, val]) => (
-            <div key={label} className="bg-dark-800/40 rounded-lg p-3">
-              <div className="text-xs text-dark-500 mb-0.5">{label}</div>
-              <div className="text-dark-200">{val}</div>
+            <div key={label} className="bg-slate-50 border border-slate-200/60 rounded-lg p-3">
+              <div className="text-xs text-slate-400 mb-0.5">{label}</div>
+              <div className="text-slate-800">{val}</div>
             </div>
           ))}
         </div>
-        <p className="text-xs text-dark-600 mt-4 italic">
+        <p className="text-xs text-slate-400 mt-4 italic">
           Contact an administrator to update profile information.
         </p>
       </div>
 
       {/* Change Password */}
       <div className="glass-card p-6">
-        <h2 className="font-semibold text-dark-200 mb-4 flex items-center gap-2">
-          <Lock size={16} className="text-accent-cyan" /> Change Password
+        <h2 className="font-semibold text-slate-800 mb-4 flex items-center gap-2">
+          <Lock size={16} className="text-sky-600" /> Change Password
         </h2>
 
         {success && (
-          <div className="flex items-center gap-2 bg-green-500/10 border border-green-500/30
-                          rounded-lg p-3 mb-4 text-green-400 text-sm">
+          <div className="flex items-center gap-2 bg-green-50 border border-green-200
+                          rounded-lg p-3 mb-4 text-green-700 text-sm">
             <CheckCircle size={15} /> {success}
           </div>
         )}
         {error && (
-          <div className="flex items-center gap-2 bg-red-500/10 border border-red-500/30
-                          rounded-lg p-3 mb-4 text-red-400 text-sm">
+          <div className="flex items-center gap-2 bg-red-50 border border-red-200
+                          rounded-lg p-3 mb-4 text-red-700 text-sm">
             <AlertCircle size={15} /> {error}
           </div>
         )}
@@ -108,7 +108,7 @@ export default function SettingsPage() {
             ['confirm', 'Confirm New Password', 'Repeat new password'],
           ] as [keyof typeof pwdForm, string, string][]).map(([key, label, placeholder]) => (
             <div key={key}>
-              <label className="block text-xs font-semibold text-dark-400 mb-1.5 uppercase tracking-wider">
+              <label className="block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wider">
                 {label}
               </label>
               <input
