@@ -7,7 +7,7 @@ interface AuthContextType {
   user: User | null
   token: string | null
   isLoading: boolean
-  login: (email: string, password: string) => Promise<void>
+  login: (email: string, password: string, requestedRole?: string) => Promise<User>
   signup: (data: Record<string, string>) => Promise<void>
   logout: () => Promise<void>
   isAdmin: () => boolean
@@ -30,13 +30,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(false)
   }, [])
 
-  const login = async (email: string, password: string) => {
-    const res = await authAPI.login({ email, password })
+  const login = async (email: string, password: string, requestedRole?: string): Promise<User> => {
+    const payload: Record<string, string> = { email, password }
+    if (requestedRole) {
+      payload.requested_role = requestedRole
+    }
+    const res = await authAPI.login(payload)
     const { token: t, user: u } = res.data
     setToken(t)
     setUser(u)
     localStorage.setItem('landguard_token', t)
     localStorage.setItem('landguard_user', JSON.stringify(u))
+    return u
   }
 
   const signup = async (data: Record<string, string>) => {

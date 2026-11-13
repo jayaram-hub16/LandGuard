@@ -107,13 +107,57 @@ def login():
                 break
 
     if not user or not valid_password:
+        if user:
+            try:
+                log_action(user.id, "LOGIN_FAILED", "User", user.id, {"email": email, "ip": client_ip})
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
         return jsonify({"error": "Invalid credentials."}), 401
 
     if not user.is_active():
-        return jsonify({"error": "Account has been deactivated."}), 403
+        return jsonify({"error": "Account has been deactivated. Please contact your system administrator."}), 403
+
+    # Backend-enforced role verification for role-specific portals
+    requested_role = (data.get("requested_role") or "").strip().upper()
+    if requested_role:
+        user_role_val = user.role.value if hasattr(user.role, "value") else str(user.role)
+        if requested_role in ("ADMIN", "SUPER_ADMIN", "SUPER ADMIN"):
+            if user_role_val != "ADMIN":
+                try:
+                    log_action(user.id, "LOGIN_ROLE_MISMATCH", "User", user.id, {
+                        "requested": requested_role,
+                        "actual": user_role_val,
+                        "ip": client_ip
+                    })
+                    db.session.commit()
+                except Exception:
+                    db.session.rollback()
+                return jsonify({
+                    "error": f"Access denied. Account '{email}' has '{user_role_val}' clearance, not Administrator privileges. Please select the {user_role_val} portal.",
+                    "actual_role": user_role_val,
+                    "code": "ROLE_MISMATCH"
+                }), 403
+
+        elif requested_role in ("SURVEYOR", "FIELD_OFFICER"):
+            if user_role_val not in ("SURVEYOR", "ADMIN"):
+                try:
+                    log_action(user.id, "LOGIN_ROLE_MISMATCH", "User", user.id, {
+                        "requested": requested_role,
+                        "actual": user_role_val,
+                        "ip": client_ip
+                    })
+                    db.session.commit()
+                except Exception:
+                    db.session.rollback()
+                return jsonify({
+                    "error": f"Access denied. Account '{email}' is registered as '{user_role_val}', not an authorized Surveyor / Field Officer.",
+                    "actual_role": user_role_val,
+                    "code": "ROLE_MISMATCH"
+                }), 403
 
     user.last_login = datetime.now(timezone.utc).replace(tzinfo=None)
-    log_action(user.id, "USER_LOGIN", "User", user.id)
+    log_action(user.id, "USER_LOGIN", "User", user.id, {"requested_role": requested_role or None})
     db.session.commit()
 
     token = generate_token(user.id, user.role.value)

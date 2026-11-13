@@ -5,10 +5,11 @@ import {
   Shield, LayoutDashboard, Map, FileText, AlertTriangle,
   Users, Activity, Settings, LogOut, Menu, X,
   ChevronRight, Database, BarChart3, Search, Briefcase,
-  ClipboardList, MessageSquare, Globe, Brain, ShieldAlert, Cpu
+  ClipboardList, MessageSquare, Globe, Brain, ShieldAlert, Cpu, Sun, Moon
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useLang } from '../../context/LangContext'
+import { useTheme } from '../../context/ThemeContext'
 import NotificationBell from '../ui/NotificationBell'
 import clsx from 'clsx'
 
@@ -43,6 +44,7 @@ const ADMIN_ITEMS: NavItem[] = [
 export default function AppLayout() {
   const { user, logout, isAdmin } = useAuth()
   const { lang, toggleLang } = useLang()
+  const { theme, toggleTheme } = useTheme()
   const navigate = useNavigate()
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -196,6 +198,16 @@ export default function AppLayout() {
 
           {/* Notifications */}
           <NotificationBell />
+
+          {/* Theme Toggle (Day/Night Mode) */}
+          <button
+            onClick={toggleTheme}
+            className="btn-ghost p-1.5 flex items-center justify-center text-slate-500 hover:text-amber-500 dark:hover:text-amber-400 transition-colors"
+            id="theme-toggle-btn"
+            title={theme === 'dark' ? 'Switch to Day Mode' : 'Switch to Night Mode'}
+          >
+            {theme === 'dark' ? <Sun size={17} className="text-amber-400" /> : <Moon size={17} className="text-slate-600" />}
+          </button>
 
           {/* Language Toggle */}
           <button
