@@ -5,12 +5,13 @@ import {
   Shield, LayoutDashboard, Map, FileText, AlertTriangle,
   Users, Activity, Settings, LogOut, Menu, X,
   ChevronRight, Database, BarChart3, Search, Briefcase,
-  ClipboardList, MessageSquare, Globe, Brain, ShieldAlert, Cpu, Sun, Moon
+  ClipboardList, MessageSquare, Globe, Brain, ShieldAlert, Cpu, Sun, Moon, Award
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { useLang } from '../../context/LangContext'
 import { useTheme } from '../../context/ThemeContext'
 import NotificationBell from '../ui/NotificationBell'
+import ProjectCreditsModal from '../ui/ProjectCreditsModal'
 import clsx from 'clsx'
 
 interface NavItem {
@@ -49,6 +50,7 @@ export default function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [creditsOpen, setCreditsOpen] = useState(false)
 
   const handleLogout = async () => {
     await logout()
@@ -128,20 +130,36 @@ export default function AppLayout() {
         <button
           onClick={handleLogout}
           className="w-full mt-1 flex items-center gap-3 px-2 py-2 rounded-lg text-slate-500
-                     hover:bg-red-50 hover:text-red-600 transition-all duration-200 text-sm font-medium"
+                     hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/40 dark:hover:text-red-400 transition-all duration-200 text-sm font-medium"
         >
           <LogOut size={16} />
           <span className={clsx(!sidebarOpen && 'lg:hidden')}>Sign Out</span>
         </button>
+
+        {/* Project Team Credits Trigger in Sidebar */}
+        <div
+          onClick={() => setCreditsOpen(true)}
+          className={clsx(
+            'mt-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-center cursor-pointer hover:opacity-80 transition-opacity',
+            !sidebarOpen && 'lg:hidden'
+          )}
+        >
+          <div className="text-[10px] font-bold text-slate-700 dark:text-slate-300">
+            R. Jayaram | C. Aslesha
+          </div>
+          <div className="text-[9px] text-blue-600 dark:text-cyan-400 font-medium">
+            Guided by Dr. Kiran Rao Patika
+          </div>
+        </div>
       </div>
     </div>
   )
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50">
+    <div className="flex h-screen overflow-hidden bg-slate-50 dark:bg-[#070d19] text-slate-900 dark:text-slate-100">
       {/* Desktop Sidebar */}
       <aside className={clsx(
-        'hidden lg:flex flex-col bg-white border-r border-slate-200 shadow-sm',
+        'hidden lg:flex flex-col bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shadow-sm',
         'transition-all duration-300 flex-shrink-0',
         sidebarOpen ? 'w-60' : 'w-16'
       )}>
@@ -153,7 +171,7 @@ export default function AppLayout() {
         <div className="lg:hidden fixed inset-0 z-50 flex">
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm"
                onClick={() => setMobileOpen(false)} />
-          <aside className="relative w-64 bg-white border-r border-slate-200 flex flex-col z-10">
+          <aside className="relative w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col z-10">
             <SidebarContent />
           </aside>
         </div>
@@ -162,7 +180,7 @@ export default function AppLayout() {
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
         {/* Topbar */}
-        <header className="h-14 bg-white/95 backdrop-blur-sm border-b border-slate-200 shadow-sm
+        <header className="h-14 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm border-b border-slate-200 dark:border-slate-800 shadow-sm
                            flex items-center gap-3 px-4 flex-shrink-0">
           {/* Mobile menu */}
           <button
@@ -198,6 +216,16 @@ export default function AppLayout() {
 
           {/* Notifications */}
           <NotificationBell />
+
+          {/* Project Credits Modal Trigger in Header */}
+          <button
+            onClick={() => setCreditsOpen(true)}
+            className="btn-ghost p-1.5 flex items-center justify-center text-slate-500 hover:text-blue-600 dark:hover:text-cyan-400 transition-colors"
+            id="credits-toggle-btn"
+            title="Project Team Credits (Jayaram, Aslesha, Dr. Kiran Rao Patika)"
+          >
+            <Award size={17} className="text-blue-500 dark:text-cyan-400" />
+          </button>
 
           {/* Theme Toggle (Day/Night Mode) */}
           <button
@@ -237,12 +265,15 @@ export default function AppLayout() {
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto bg-slate-50 dark:bg-[#070d19]">
           <div className="p-4 lg:p-6 page-enter">
             <Outlet />
           </div>
         </main>
       </div>
+
+      {/* Project Credits Modal */}
+      <ProjectCreditsModal isOpen={creditsOpen} onClose={() => setCreditsOpen(false)} />
     </div>
   )
 }

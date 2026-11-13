@@ -354,7 +354,20 @@ export default function GISSecurityIntro({ onComplete }: GISSecurityIntroProps) 
             "SECURE LAND. TRUSTED RECORDS. PROTECTING PUBLIC PROPERTY."
           </p>
 
-          <p className="text-[11px] text-slate-400 font-mono pt-1">
+          {/* Project Team Credits in Intro */}
+          <div className="pt-2 flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 text-[11px] font-mono text-cyan-200/90">
+            <div>
+              <span className="text-slate-400">PROJECT DEVELOPERS:</span>{' '}
+              <strong className="text-white">R. Jayaram | C. Aslesha</strong>
+            </div>
+            <span className="hidden sm:inline text-slate-500">•</span>
+            <div>
+              <span className="text-slate-400">PROJECT MENTOR:</span>{' '}
+              <strong className="text-emerald-400">Dr. Kiran Rao Patika</strong>
+            </div>
+          </div>
+
+          <p className="text-[10px] text-slate-500 font-mono pt-0.5">
             Visual Identity Animation • Initializing LandGuard Role Portals...
           </p>
         </div>
@@ -362,3 +375,4 @@ export default function GISSecurityIntro({ onComplete }: GISSecurityIntroProps) 
     </div>
   )
 }
+
