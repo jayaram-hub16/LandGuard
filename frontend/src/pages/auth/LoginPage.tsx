@@ -25,10 +25,21 @@ export default function LoginPage() {
         message?: string
         response?: { status?: number; data?: { error?: string; message?: string } }
       }
-      if (axiosErr.code === 'ERR_NETWORK' || !axiosErr.response || axiosErr.response.status === 502 || axiosErr.response.status === 504) {
-        setError('Cannot connect to the LandGuard backend server. Please verify that the backend is running at http://127.0.0.1:5000.')
+      if (
+        axiosErr.code === 'ERR_NETWORK' ||
+        !axiosErr.response ||
+        axiosErr.response.status === 502 ||
+        axiosErr.response.status === 503 ||
+        axiosErr.response.status === 504
+      ) {
+        setError(
+          'Cannot reach the LandGuard backend server. The cloud server may be spinning up from idle (please wait ~30 seconds and try again) or check your network connection.'
+        )
       } else {
-        const msg = axiosErr.response?.data?.error || axiosErr.response?.data?.message || 'Login failed. Please check your credentials.'
+        const msg =
+          axiosErr.response?.data?.error ||
+          axiosErr.response?.data?.message ||
+          'Login failed. Please check your credentials.'
         setError(msg)
       }
     } finally {

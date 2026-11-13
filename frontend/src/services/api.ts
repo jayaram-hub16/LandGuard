@@ -2,7 +2,19 @@
 import axios from 'axios'
 
 const PROD_BACKEND_URL = 'https://landguard-l6j1.onrender.com'
-const API_BASE = (import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '' : PROD_BACKEND_URL)) + '/api'
+
+const getApiBase = (): string => {
+  const envUrl = (import.meta.env.VITE_API_URL || '').trim()
+  if (envUrl) {
+    return envUrl.endsWith('/api') ? envUrl : `${envUrl.replace(/\/+$/, '')}/api`
+  }
+  if (import.meta.env.DEV) {
+    return '/api'
+  }
+  return `${PROD_BACKEND_URL}/api`
+}
+
+const API_BASE = getApiBase()
 
 const api = axios.create({
   baseURL: API_BASE,
@@ -177,4 +189,10 @@ export const aiModelsAPI = {
   getRuns:             (model: string)          => api.get(`/ai-models/${model}/runs`),
   getRun:              (model: string, id: string) => api.get(`/ai-models/${model}/runs/${id}`),
 }
+
+// ── Health ────────────────────────────────────────────────────────
+export const healthAPI = {
+  check: () => api.get('/health'),
+}
+
 

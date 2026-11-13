@@ -65,7 +65,7 @@ class ProductionConfig(BaseConfig):
         o.strip()
         for o in os.environ.get(
             "CORS_ORIGINS",
-            os.environ.get("FRONTEND_URL", "https://landguard.vercel.app,http://localhost:5173")
+            os.environ.get("FRONTEND_URL", "https://landguard-jayaram-hub16.vercel.app,https://landguard.vercel.app,http://localhost:5173")
         ).split(",")
         if o.strip()
     ]
