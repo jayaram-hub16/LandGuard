@@ -26,6 +26,17 @@ def create_app(config_name=None):
     from app.config import config_map
     app.config.from_object(config_map.get(config_name, config_map["development"]))
 
+    # Log SMTP env var presence at startup (never log values)
+    _smtp_vars = ["SMTP_HOST", "SMTP_PORT", "SMTP_USERNAME", "SMTP_PASSWORD",
+                  "SMTP_FROM_EMAIL", "SMTP_FROM_NAME", "MAIL_SERVER",
+                  "MAIL_USERNAME", "MAIL_PASSWORD", "MAIL_USE_TLS"]
+    _smtp_present = [v for v in _smtp_vars if os.environ.get(v, "").strip()]
+    _smtp_missing = [v for v in _smtp_vars if not os.environ.get(v, "").strip()]
+    logging.getLogger(__name__).info(
+        "STARTUP SMTP env vars — present: %s | missing: %s | env: %s",
+        _smtp_present, _smtp_missing, config_name
+    )
+
     # Initialize extensions
     db.init_app(app)
     migrate.init_app(app, db)

@@ -30,6 +30,8 @@ export default function SettingsPage() {
   const [emailTestAddr, setEmailTestAddr]   = useState('')
   const [emailTesting, setEmailTesting]     = useState(false)
   const [emailTestResult, setEmailTestResult] = useState<EmailTestResult | null>(null)
+  const [smtpCheckResult, setSmtpCheckResult] = useState<Record<string, unknown> | null>(null)
+  const [smtpChecking, setSmtpChecking]       = useState(false)
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -166,6 +168,59 @@ export default function SettingsPage() {
             Results are shown here only — SMTP credentials are never exposed.
           </p>
 
+          {/* Step 1 — quick env-var presence check (no auth needed) */}
+          <div className="mb-4">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider">
+                Step 1 — Backend Env Var Check
+              </span>
+              <button
+                type="button"
+                disabled={smtpChecking}
+                onClick={async () => {
+                  setSmtpChecking(true); setSmtpCheckResult(null)
+                  try {
+                    const res = await authAPI.smtpCheck()
+                    setSmtpCheckResult(res.data as Record<string, unknown>)
+                  } catch {
+                    setSmtpCheckResult({ error: 'Backend not reachable or endpoint missing.' })
+                  } finally { setSmtpChecking(false) }
+                }}
+                className="btn-secondary flex items-center gap-1.5 text-xs px-3 py-1.5"
+              >
+                {smtpChecking ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle size={12} />}
+                {smtpChecking ? 'Checking…' : 'Check Env Vars'}
+              </button>
+            </div>
+            {smtpCheckResult && (
+              <div className={`rounded-xl px-4 py-3 text-xs border space-y-1 ${
+                smtpCheckResult.smtp_configured
+                  ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300'
+                  : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300'
+              }`}>
+                {smtpCheckResult.error
+                  ? <div className="text-red-600 dark:text-red-400 font-semibold">{String(smtpCheckResult.error)}</div>
+                  : <>
+                      <div className="font-semibold">
+                        {smtpCheckResult.smtp_configured ? '✅ SMTP vars are set in backend' : '⚠ SMTP vars are missing in backend'}
+                      </div>
+                      <div>Env: <code className="font-mono">{String(smtpCheckResult.flask_env)}</code></div>
+                      <div>Present: <span className="font-mono">
+                        {Object.keys((smtpCheckResult.vars_present as Record<string,boolean>) || {}).join(', ') || 'none'}
+                      </span></div>
+                      <div>Missing: <span className="font-mono">
+                        {Object.keys((smtpCheckResult.vars_missing as Record<string,boolean>) || {}).join(', ') || 'none'}
+                      </span></div>
+                    </>
+                }
+              </div>
+            )}
+          </div>
+
+          {/* Step 2 — Full SMTP test with real send */}
+          <div className="text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">
+            Step 2 — Full SMTP Connection &amp; Send Test
+          </div>
           <div className="flex gap-2 mb-4">
             <input
               type="email"

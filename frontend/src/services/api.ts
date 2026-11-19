@@ -58,6 +58,8 @@ export const authAPI = {
     api.post('/auth/reset-password', data),
   // Admin SMTP config test (admin only)
   testEmail: (data?: { to_email?: string }) => api.post('/auth/test-email', data || {}),
+  // Public SMTP presence check — no auth, only shows which vars are present/missing
+  smtpCheck: () => api.get('/auth/smtp-check'),
 }
 
 // ── Parcels ───────────────────────────────────────

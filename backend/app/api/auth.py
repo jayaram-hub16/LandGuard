@@ -522,7 +522,7 @@ def setup_admin():
 
 @auth_bp.route("/test-email", methods=["POST"])
 @login_required
-def test_email_config(current_user):
+def test_email_config():
     """
     POST /api/auth/test-email
     Admin-only: test SMTP configuration and optionally send a test email.
@@ -530,8 +530,11 @@ def test_email_config(current_user):
     Returns SMTP status, connection result, and send result.
     Never returns SMTP password or OTP values.
     """
-    import os, smtplib
+    import smtplib
     from app.utils.email_service import _get_smtp_config
+
+    # Use current_user from request context (set by @login_required)
+    current_user = request.current_user
 
     # Only admins and super_admins may use this endpoint
     role = (current_user.role.value if hasattr(current_user.role, "value") else str(current_user.role)).lower()
@@ -624,3 +627,42 @@ def test_email_config(current_user):
         result["connection_ok"], result["auth_ok"], result["send_ok"]
     )
     return jsonify(result), 200
+
+
+# ── Safe public SMTP presence check (no credentials exposed) ───────────────
+
+@auth_bp.route("/smtp-check", methods=["GET"])
+def smtp_check():
+    """
+    GET /api/auth/smtp-check
+    Public (no auth required). Returns ONLY which SMTP env var names are
+    present/absent. Never returns values, passwords, or OTP data.
+    Used to verify that Render/cloud environment variables are loading.
+    """
+    import os
+    vars_to_check = [
+        "SMTP_HOST", "SMTP_PORT", "SMTP_USERNAME",
+        "SMTP_PASSWORD", "SMTP_FROM_EMAIL", "SMTP_FROM_NAME",
+        "MAIL_SERVER", "MAIL_PORT", "MAIL_USERNAME",
+        "MAIL_PASSWORD", "MAIL_USE_TLS", "FLASK_ENV",
+    ]
+    presence = {v: bool(os.environ.get(v, "").strip()) for v in vars_to_check}
+    smtp_configured = bool(
+        os.environ.get("SMTP_HOST") or os.environ.get("MAIL_SERVER", "")
+    ) and bool(
+        os.environ.get("SMTP_USERNAME") or os.environ.get("MAIL_USERNAME", "")
+    ) and bool(
+        os.environ.get("SMTP_PASSWORD") or os.environ.get("MAIL_PASSWORD", "")
+    )
+    logger.info(
+        "SMTP check: configured=%s present=%s",
+        smtp_configured,
+        [k for k, v in presence.items() if v]
+    )
+    return jsonify({
+        "smtp_configured": smtp_configured,
+        "vars_present":    {k: v for k, v in presence.items() if v},
+        "vars_missing":    {k: v for k, v in presence.items() if not v},
+        "flask_env":       os.environ.get("FLASK_ENV", "(not set)"),
+        "note":            "Variable values are never returned. Only presence is shown."
+    }), 200
