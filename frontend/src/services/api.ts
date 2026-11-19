@@ -56,6 +56,8 @@ export const authAPI = {
   verifyOtp: (data: { email: string; otp: string }) => api.post('/auth/verify-otp', data),
   resetPassword: (data: { email: string; reset_token: string; new_password: string; confirm_password: string }) =>
     api.post('/auth/reset-password', data),
+  // Admin SMTP config test (admin only)
+  testEmail: (data?: { to_email?: string }) => api.post('/auth/test-email', data || {}),
 }
 
 // ── Parcels ───────────────────────────────────────

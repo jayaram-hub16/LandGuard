@@ -326,13 +326,33 @@ export default function LoginPage() {
 
   const handleForgotSendOtp = async () => {
     if (!forgotEmail.trim()) { setForgotError('Please enter your email address.'); return }
-    setForgotLoading(true); setForgotError('')
+    setForgotLoading(true); setForgotError(''); setForgotSuccess('')
     try {
-      await authAPI.forgotPassword({ email: forgotEmail.trim().toLowerCase() })
-      setForgotStep('otp'); setForgotResendCooldown(60)
-      setForgotSuccess('Recovery code sent. Please check your inbox.')
-    } catch { setForgotError('Failed to send recovery code. Please verify the email and try again.') }
-    finally { setForgotLoading(false) }
+      const res = await authAPI.forgotPassword({ email: forgotEmail.trim().toLowerCase() })
+      // Backend now returns HTTP 200 only when email was actually accepted by SMTP.
+      // HTTP 503 means email config is broken — the catch block below handles that.
+      const msg: string = res?.data?.message || ''
+      setForgotStep('otp')
+      setForgotResendCooldown(60)
+      setForgotSuccess(msg || 'Recovery code sent. Please check your inbox.')
+    } catch (err: unknown) {
+      const axErr = err as { response?: { status?: number; data?: { error?: string; message?: string } } }
+      const status = axErr?.response?.status
+      const serverMsg = axErr?.response?.data?.error || axErr?.response?.data?.message || ''
+      if (status === 503) {
+        // Real email delivery failure — backend SMTP not configured or auth error
+        setForgotError(
+          serverMsg ||
+          'The server could not send the recovery email. Please contact the administrator.'
+        )
+      } else if (status === 429) {
+        setForgotError('Too many requests. Please wait a few minutes and try again.')
+      } else {
+        setForgotError(
+          serverMsg || 'Failed to send recovery code. Please verify the email address and try again.'
+        )
+      }
+    } finally { setForgotLoading(false) }
   }
 
   const handleForgotVerifyOtp = async () => {

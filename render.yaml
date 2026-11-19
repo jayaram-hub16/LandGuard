@@ -41,6 +41,25 @@ services:
         sync: false
       - key: ADMIN_BOOTSTRAP_PASSWORD
         sync: false
+      # ── Email / SMTP for OTP password recovery ──────────────────────────
+      # Set these in Render dashboard → Environment → Add Secret
+      # For Gmail: generate an App Password (not your login password)
+      # Google Account → Security → 2-Step Verification → App Passwords
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_USERNAME
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: SMTP_FROM_EMAIL
+        sync: false
+      - key: SMTP_FROM_NAME
+        value: LandGuard
+      - key: MAIL_USE_TLS
+        value: "true"
+      # Legacy aliases (keep for backward compat)
       - key: MAIL_SERVER
         sync: false
       - key: MAIL_USERNAME

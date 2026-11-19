@@ -6,6 +6,7 @@ import re
 import time
 import secrets
 import hashlib
+import logging
 from datetime import datetime, timezone
 from flask import Blueprint, request, jsonify
 from app import db
@@ -14,6 +15,7 @@ from app.utils.auth import hash_password, verify_password, generate_token, login
 from app.utils.audit import log_action
 
 auth_bp = Blueprint("auth", __name__)
+logger = logging.getLogger(__name__)
 
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
@@ -277,14 +279,33 @@ def forgot_password():
         db.session.rollback()
         return jsonify(generic_msg), 200
 
-    # Send email (fire-and-forget; never log OTP)
+    # Send OTP email — check the return value; do NOT silently swallow failure
+    email_sent, email_error = (False, "Unknown error")
     try:
-        send_otp_email(email, otp_str, expires_minutes)
+        email_sent, email_error = send_otp_email(email, otp_str, expires_minutes)
     except Exception as exc:
-        import logging
-        logging.getLogger(__name__).error("OTP email dispatch error: %s", type(exc).__name__)
+        logger.error("OTP email dispatch exception for %s: %s", email, type(exc).__name__)
+        email_sent, email_error = False, "Email service raised an unexpected error."
 
-    return jsonify(generic_msg), 200
+    if not email_sent:
+        # Mark the OTP as used so it cannot be replayed if email never arrived
+        try:
+            otp_record.used = True
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+
+        # Distinguish between mis-configured SMTP and a transient send failure
+        if "not configured" in email_error.lower() or "authentication" in email_error.lower():
+            return jsonify({
+                "error": "Email delivery is not configured on this server. "
+                         "Please contact the system administrator to enable password recovery."
+            }), 503
+        return jsonify({
+            "error": "Failed to send the recovery email. Please try again in a moment."
+        }), 503
+
+    return jsonify({"message": "Recovery code sent. Please check your inbox."}), 200
 
 
 @auth_bp.route("/verify-otp", methods=["POST"])
@@ -495,3 +516,111 @@ def setup_admin():
         db.session.rollback()
         return jsonify({"error": f"Failed to setup admin account: {str(e)}"}), 500
 
+
+
+# ── Email Configuration Test (Admin only) ──────────────────────────────────
+
+@auth_bp.route("/test-email", methods=["POST"])
+@login_required
+def test_email_config(current_user):
+    """
+    POST /api/auth/test-email
+    Admin-only: test SMTP configuration and optionally send a test email.
+    Body: { "to_email": "optional@example.com" }
+    Returns SMTP status, connection result, and send result.
+    Never returns SMTP password or OTP values.
+    """
+    import os, smtplib
+    from app.utils.email_service import _get_smtp_config
+
+    # Only admins and super_admins may use this endpoint
+    role = (current_user.role.value if hasattr(current_user.role, "value") else str(current_user.role)).lower()
+    if role not in ("admin", "super_admin"):
+        return jsonify({"error": "Admin access required."}), 403
+
+    cfg = _get_smtp_config()
+    data = request.get_json(silent=True) or {}
+    to_email = (data.get("to_email") or "").strip() or current_user.email
+
+    result = {
+        "smtp_host":       cfg["host"] or "(not set)",
+        "smtp_port":       cfg["port"],
+        "smtp_username":   cfg["username"] or "(not set)",
+        "smtp_from_email": cfg["from_email"] or "(not set)",
+        "smtp_from_name":  cfg["from_name"],
+        "use_tls":         cfg["use_tls"],
+        "config_ok":       bool(cfg["host"] and cfg["username"] and cfg["password"]),
+        "connection_ok":   False,
+        "auth_ok":         False,
+        "send_ok":         False,
+        "error":           None,
+        "to_email":        to_email,
+    }
+
+    if not result["config_ok"]:
+        result["error"] = "SMTP configuration is incomplete. Set SMTP_HOST, SMTP_USERNAME, SMTP_PASSWORD."
+        return jsonify(result), 200
+
+    # Test connection
+    try:
+        if cfg["use_tls"]:
+            with smtplib.SMTP(cfg["host"], cfg["port"], timeout=8) as server:
+                server.ehlo()
+                result["connection_ok"] = True
+                server.starttls()
+                server.ehlo()
+                server.login(cfg["username"], cfg["password"])
+                result["auth_ok"] = True
+                # Send a real test email
+                from email.mime.multipart import MIMEMultipart
+                from email.mime.text import MIMEText
+                msg = MIMEMultipart("alternative")
+                msg["Subject"] = "LandGuard – SMTP Configuration Test"
+                msg["From"]    = f"{cfg['from_name']} <{cfg['from_email'] or cfg['username']}>"
+                msg["To"]      = to_email
+                body = (
+                    "<h2>✅ LandGuard SMTP Test Successful</h2>"
+                    "<p>Your email configuration is working correctly. "
+                    "OTP password-recovery emails will be delivered.</p>"
+                    "<p><small>Sent by LandGuard Admin SMTP Test</small></p>"
+                )
+                msg.attach(MIMEText("LandGuard SMTP Test: configuration is working.", "plain", "utf-8"))
+                msg.attach(MIMEText(body, "html", "utf-8"))
+                server.sendmail(cfg["from_email"] or cfg["username"], [to_email], msg.as_string())
+                result["send_ok"] = True
+        else:
+            with smtplib.SMTP_SSL(cfg["host"], cfg["port"], timeout=8) as server:
+                result["connection_ok"] = True
+                server.login(cfg["username"], cfg["password"])
+                result["auth_ok"] = True
+                from email.mime.multipart import MIMEMultipart
+                from email.mime.text import MIMEText
+                msg = MIMEMultipart("alternative")
+                msg["Subject"] = "LandGuard – SMTP Configuration Test"
+                msg["From"]    = f"{cfg['from_name']} <{cfg['from_email'] or cfg['username']}>"
+                msg["To"]      = to_email
+                msg.attach(MIMEText("LandGuard SMTP Test: configuration is working.", "plain", "utf-8"))
+                server.sendmail(cfg["from_email"] or cfg["username"], [to_email], msg.as_string())
+                result["send_ok"] = True
+
+    except smtplib.SMTPAuthenticationError:
+        result["connection_ok"] = True
+        result["error"] = (
+            "SMTP Authentication failed. "
+            "For Gmail: use an App Password (not your Gmail login password). "
+            "Enable 2FA → Google Account → Security → App Passwords → generate one."
+        )
+    except smtplib.SMTPConnectError:
+        result["error"] = f"Cannot connect to {cfg['host']}:{cfg['port']}. Check SMTP_HOST and SMTP_PORT."
+    except smtplib.SMTPException as exc:
+        result["error"] = f"SMTP error: {type(exc).__name__}"
+    except Exception as exc:
+        result["error"] = f"Unexpected error: {type(exc).__name__}"
+
+    logger.info(
+        "SMTP test by admin %s → host=%s user=%s conn=%s auth=%s send=%s",
+        current_user.email,
+        cfg["host"], cfg["username"],
+        result["connection_ok"], result["auth_ok"], result["send_ok"]
+    )
+    return jsonify(result), 200
