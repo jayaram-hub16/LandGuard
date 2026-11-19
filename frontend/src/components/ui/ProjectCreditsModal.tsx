@@ -115,3 +115,4 @@ export default function ProjectCreditsModal({ isOpen, onClose }: ProjectCreditsM
     </div>
   )
 }
+

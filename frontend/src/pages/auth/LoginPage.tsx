@@ -5,9 +5,10 @@ import {
   Shield, Mail, Lock, Eye, EyeOff, AlertCircle, Loader2,
   ChevronLeft, ChevronRight, CheckCircle2, ArrowRight,
   Sun, Moon, RotateCcw, ShieldCheck, Compass, UserCheck,
-  Award, HelpCircle, Check, ArrowDown
+  Award, HelpCircle, Check, ArrowDown, X
 } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
+import { authAPI } from '../../services/api'
 import { useTheme } from '../../context/ThemeContext'
 import GISSecurityIntro from '../../components/auth/GISSecurityIntro'
 import ProjectCreditsModal, { PROJECT_CREDITS } from '../../components/ui/ProjectCreditsModal'
@@ -127,6 +128,19 @@ export default function LoginPage() {
   const [error, setError] = useState<string>('')
   const [mismatchedRole, setMismatchedRole] = useState<string | null>(null)
   const [forgotModalOpen, setForgotModalOpen] = useState<boolean>(false)
+
+  // OTP Password Recovery State
+  const [forgotStep, setForgotStep] = useState<'email'|'otp'|'reset'|'done'>('email')
+  const [forgotEmail, setForgotEmail] = useState('')
+  const [forgotOtp, setForgotOtp] = useState('')
+  const [forgotResetToken, setForgotResetToken] = useState('')
+  const [forgotNewPwd, setForgotNewPwd] = useState('')
+  const [forgotConfirmPwd, setForgotConfirmPwd] = useState('')
+  const [forgotLoading, setForgotLoading] = useState(false)
+  const [forgotError, setForgotError] = useState('')
+  const [forgotSuccess, setForgotSuccess] = useState('')
+  const [forgotResendCooldown, setForgotResendCooldown] = useState(0)
+  const [forgotShowPwd, setForgotShowPwd] = useState(false)
 
   // Touch Swipe Refs
   const touchStartX = useRef<number | null>(null)
@@ -287,6 +301,71 @@ export default function LoginPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  // OTP resend countdown
+  useEffect(() => {
+    if (forgotResendCooldown <= 0) return
+    const t = setTimeout(() => setForgotResendCooldown(c => c - 1), 1000)
+    return () => clearTimeout(t)
+  }, [forgotResendCooldown])
+
+  // OTP Recovery Handlers
+  const handleCloseForgot = () => {
+    setForgotModalOpen(false)
+    setForgotStep('email')
+    setForgotEmail('')
+    setForgotOtp('')
+    setForgotResetToken('')
+    setForgotNewPwd('')
+    setForgotConfirmPwd('')
+    setForgotError('')
+    setForgotSuccess('')
+    setForgotResendCooldown(0)
+  }
+
+  const handleForgotSendOtp = async () => {
+    if (!forgotEmail.trim()) { setForgotError('Please enter your email address.'); return }
+    setForgotLoading(true); setForgotError('')
+    try {
+      await authAPI.forgotPassword({ email: forgotEmail.trim().toLowerCase() })
+      setForgotStep('otp'); setForgotResendCooldown(60)
+      setForgotSuccess('Recovery code sent. Please check your inbox.')
+    } catch { setForgotError('Failed to send recovery code. Please verify the email and try again.') }
+    finally { setForgotLoading(false) }
+  }
+
+  const handleForgotVerifyOtp = async () => {
+    if (!forgotOtp.trim() || forgotOtp.length !== 6) { setForgotError('Please enter the 6-digit OTP.'); return }
+    setForgotLoading(true); setForgotError('')
+    try {
+      const res = await authAPI.verifyOtp({ email: forgotEmail, otp: forgotOtp })
+      setForgotResetToken(res.data.reset_token)
+      setForgotStep('reset'); setForgotSuccess('')
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Invalid OTP. Please try again.'
+      setForgotError(msg)
+    } finally { setForgotLoading(false) }
+  }
+
+  const handleForgotResetPassword = async () => {
+    if (!forgotNewPwd || !forgotConfirmPwd) { setForgotError('Please fill in both password fields.'); return }
+    if (forgotNewPwd !== forgotConfirmPwd) { setForgotError('Passwords do not match.'); return }
+    if (forgotNewPwd.length < 8) { setForgotError('Password must be at least 8 characters.'); return }
+    setForgotLoading(true); setForgotError('')
+    try {
+      await authAPI.resetPassword({
+        email: forgotEmail,
+        reset_token: forgotResetToken,
+        new_password: forgotNewPwd,
+        confirm_password: forgotConfirmPwd
+      })
+      setForgotStep('done')
+      setForgotSuccess('Password reset successfully. Please log in with your new password.')
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error || 'Password reset failed. Please try again.'
+      setForgotError(msg)
+    } finally { setForgotLoading(false) }
   }
 
   const currentRole = ROLES[activeIndex]
@@ -759,36 +838,213 @@ export default function LoginPage() {
           </div>
         </footer>
 
-        {/* ── Forgot Password Modal ── */}
+        {/* ── Forgot Password Modal (Multi-Step OTP Recovery) ── */}
         {forgotModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-            <div className="glass-card max-w-md w-full p-6 space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
-                  <HelpCircle size={22} />
+            <div className="glass-card max-w-md w-full p-6 space-y-5 relative">
+
+              {/* Close Button */}
+              <button
+                type="button"
+                onClick={handleCloseForgot}
+                className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
+                title="Close"
+              >
+                <X size={18} />
+              </button>
+
+              {/* Header */}
+              <div className="flex items-center gap-3 pr-8">
+                <div className="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center flex-shrink-0">
+                  <Lock size={20} />
                 </div>
                 <div>
                   <h4 className="font-bold text-slate-900 dark:text-white">Password Recovery</h4>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">LandGuard Role-Based Access</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    {forgotStep === 'email' && 'Enter your registered email address'}
+                    {forgotStep === 'otp' && 'Enter the 6-digit code sent to your inbox'}
+                    {forgotStep === 'reset' && 'Set your new password'}
+                    {forgotStep === 'done' && 'Recovery complete'}
+                  </p>
                 </div>
               </div>
 
-              <div className="text-xs text-slate-600 dark:text-slate-300 space-y-2.5 leading-relaxed bg-slate-50 dark:bg-slate-800/60 p-3.5 rounded-xl border border-slate-200 dark:border-slate-700">
-                <p>
-                  <strong>System Administrator &amp; Surveyor:</strong> For security compliance, privileged role credentials are managed through authorized administrative directory keys.
-                </p>
-                <p>
-                  <strong>Citizens &amp; Landowners:</strong> If mail services are connected, recovery tokens are dispatched to your registered email.
-                </p>
-              </div>
+              {/* Step Progress Dots */}
+              {forgotStep !== 'done' && (
+                <div className="flex items-center justify-center gap-2">
+                  {(['email', 'otp', 'reset'] as const).map((s) => (
+                    <div
+                      key={s}
+                      className={`h-1.5 rounded-full transition-all duration-300 ${
+                        s === forgotStep
+                          ? 'w-6 bg-blue-500'
+                          : (forgotStep === 'otp' && s === 'email') || (forgotStep === 'reset' && (s === 'email' || s === 'otp'))
+                          ? 'w-3 bg-blue-300'
+                          : 'w-3 bg-slate-200 dark:bg-slate-700'
+                      }`}
+                    />
+                  ))}
+                </div>
+              )}
 
-              <button
-                type="button"
-                onClick={() => setForgotModalOpen(false)}
-                className="btn-primary w-full py-2.5 text-xs font-semibold"
-              >
-                Close
-              </button>
+              {/* Error Banner */}
+              {forgotError && (
+                <div className="flex items-start gap-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 rounded-xl px-3 py-2.5 text-xs">
+                  <AlertCircle size={14} className="mt-0.5 flex-shrink-0" />
+                  <span>{forgotError}</span>
+                </div>
+              )}
+
+              {/* Success Banner */}
+              {forgotSuccess && !forgotError && (
+                <div className="flex items-start gap-2 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 rounded-xl px-3 py-2.5 text-xs">
+                  <CheckCircle2 size={14} className="mt-0.5 flex-shrink-0" />
+                  <span>{forgotSuccess}</span>
+                </div>
+              )}
+
+              {/* ── Step: Email ── */}
+              {forgotStep === 'email' && (
+                <div className="space-y-3">
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Email Address
+                  </label>
+                  <div className="flex items-center gap-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100 dark:focus-within:ring-blue-900 transition-all">
+                    <Mail size={15} className="text-slate-400 flex-shrink-0" />
+                    <input
+                      type="email"
+                      autoFocus
+                      placeholder="your@email.com"
+                      className="flex-1 text-sm bg-transparent outline-none text-slate-800 dark:text-white placeholder:text-slate-400"
+                      value={forgotEmail}
+                      onChange={e => { setForgotEmail(e.target.value); setForgotError('') }}
+                      onKeyDown={e => { if (e.key === 'Enter') handleForgotSendOtp() }}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    disabled={forgotLoading}
+                    onClick={handleForgotSendOtp}
+                    className="btn-primary w-full py-2.5 text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    {forgotLoading ? <Loader2 size={16} className="animate-spin" /> : <Mail size={15} />}
+                    {forgotLoading ? 'Sending...' : 'Send Recovery Code'}
+                  </button>
+                </div>
+              )}
+
+              {/* ── Step: OTP ── */}
+              {forgotStep === 'otp' && (
+                <div className="space-y-3">
+                  <div className="text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/60 rounded-xl px-3 py-2 border border-slate-200 dark:border-slate-700">
+                    Code sent to <span className="font-semibold text-slate-700 dark:text-slate-200">{forgotEmail}</span>. Valid for 5 minutes.
+                  </div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    6-Digit OTP Code
+                  </label>
+                  <div className="flex items-center gap-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100 dark:focus-within:ring-blue-900 transition-all">
+                    <ShieldCheck size={15} className="text-slate-400 flex-shrink-0" />
+                    <input
+                      type="text"
+                      autoFocus
+                      maxLength={6}
+                      placeholder="000000"
+                      className="flex-1 text-sm bg-transparent outline-none text-slate-800 dark:text-white placeholder:text-slate-400 font-mono tracking-widest"
+                      value={forgotOtp}
+                      onChange={e => { setForgotOtp(e.target.value.replace(/\D/g, '')); setForgotError('') }}
+                      onKeyDown={e => { if (e.key === 'Enter') handleForgotVerifyOtp() }}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    disabled={forgotLoading}
+                    onClick={handleForgotVerifyOtp}
+                    className="btn-primary w-full py-2.5 text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    {forgotLoading ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle2 size={15} />}
+                    {forgotLoading ? 'Verifying...' : 'Verify Code'}
+                  </button>
+                  <div className="text-center text-xs text-slate-500 dark:text-slate-400">
+                    {forgotResendCooldown > 0 ? (
+                      <span>Resend available in <span className="font-semibold text-blue-600 dark:text-blue-400">{forgotResendCooldown}s</span></span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => { setForgotError(''); setForgotSuccess(''); handleForgotSendOtp() }}
+                        className="text-blue-600 dark:text-cyan-400 hover:underline font-medium"
+                      >
+                        Resend recovery code
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* ── Step: Reset Password ── */}
+              {forgotStep === 'reset' && (
+                <div className="space-y-3">
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">New Password</label>
+                  <div className="flex items-center gap-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100 dark:focus-within:ring-blue-900 transition-all">
+                    <Lock size={15} className="text-slate-400 flex-shrink-0" />
+                    <input
+                      type={forgotShowPwd ? 'text' : 'password'}
+                      autoFocus
+                      placeholder="At least 8 characters"
+                      className="flex-1 text-sm bg-transparent outline-none text-slate-800 dark:text-white placeholder:text-slate-400"
+                      value={forgotNewPwd}
+                      onChange={e => { setForgotNewPwd(e.target.value); setForgotError('') }}
+                    />
+                    <button type="button" onClick={() => setForgotShowPwd(v => !v)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
+                      {forgotShowPwd ? <EyeOff size={14} /> : <Eye size={14} />}
+                    </button>
+                  </div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">Confirm Password</label>
+                  <div className="flex items-center gap-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100 dark:focus-within:ring-blue-900 transition-all">
+                    <Lock size={15} className="text-slate-400 flex-shrink-0" />
+                    <input
+                      type={forgotShowPwd ? 'text' : 'password'}
+                      placeholder="Repeat new password"
+                      className="flex-1 text-sm bg-transparent outline-none text-slate-800 dark:text-white placeholder:text-slate-400"
+                      value={forgotConfirmPwd}
+                      onChange={e => { setForgotConfirmPwd(e.target.value); setForgotError('') }}
+                      onKeyDown={e => { if (e.key === 'Enter') handleForgotResetPassword() }}
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    disabled={forgotLoading}
+                    onClick={handleForgotResetPassword}
+                    className="btn-primary w-full py-2.5 text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+                  >
+                    {forgotLoading ? <Loader2 size={16} className="animate-spin" /> : <ShieldCheck size={15} />}
+                    {forgotLoading ? 'Resetting...' : 'Reset Password'}
+                  </button>
+                </div>
+              )}
+
+              {/* ── Step: Done ── */}
+              {forgotStep === 'done' && (
+                <div className="space-y-4 text-center">
+                  <div className="flex items-center justify-center">
+                    <div className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                      <CheckCircle2 size={32} className="text-emerald-600 dark:text-emerald-400" />
+                    </div>
+                  </div>
+                  <div>
+                    <h5 className="font-bold text-slate-900 dark:text-white text-base">Password Reset!</h5>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">You can now sign in with your new credentials.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleCloseForgot}
+                    className="btn-primary w-full py-2.5 text-sm font-semibold flex items-center justify-center gap-2"
+                  >
+                    <ArrowRight size={15} />
+                    Back to Login
+                  </button>
+                </div>
+              )}
+
             </div>
           </div>
         )}

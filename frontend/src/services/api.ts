@@ -51,6 +51,11 @@ export const authAPI = {
   logout: () => api.post('/auth/logout'),
   me: () => api.get('/auth/me'),
   changePassword: (data: Record<string, string>) => api.post('/auth/change-password', data),
+  // Password recovery via email OTP (all roles supported)
+  forgotPassword: (data: { email: string }) => api.post('/auth/forgot-password', data),
+  verifyOtp: (data: { email: string; otp: string }) => api.post('/auth/verify-otp', data),
+  resetPassword: (data: { email: string; reset_token: string; new_password: string; confirm_password: string }) =>
+    api.post('/auth/reset-password', data),
 }
 
 // ── Parcels ───────────────────────────────────────

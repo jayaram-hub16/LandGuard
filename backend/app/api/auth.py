@@ -4,6 +4,8 @@ Auth API Blueprint — POST /api/auth/*
 import os
 import re
 import time
+import secrets
+import hashlib
 from datetime import datetime, timezone
 from flask import Blueprint, request, jsonify
 from app import db
@@ -198,6 +200,242 @@ def change_password():
     log_action(user.id, "PASSWORD_CHANGED", "User", user.id)
     db.session.commit()
     return jsonify({"message": "Password changed successfully."})
+
+
+# ── Password Reset OTP flow ───────────────────────────────────────────────────
+
+_forgot_pw_attempts: dict = {}   # {ip: [timestamp, ...]}
+
+
+def _check_forgot_pw_rate(ip: str, max_attempts: int = 5, window_secs: int = 300) -> bool:
+    """Returns True if rate limit exceeded (max 5 requests per 5 min per IP)."""
+    now = time.time()
+    attempts = _forgot_pw_attempts.get(ip, [])
+    attempts = [t for t in attempts if now - t < window_secs]
+    if len(attempts) >= max_attempts:
+        return True
+    attempts.append(now)
+    _forgot_pw_attempts[ip] = attempts
+    return False
+
+
+@auth_bp.route("/forgot-password", methods=["POST"])
+def forgot_password():
+    """
+    POST /api/auth/forgot-password
+    Accepts { email }. Generates a 6-digit OTP, hashes it with SHA-256, stores
+    in DB, and sends via email. Returns a generic message regardless of whether
+    the email exists (prevents email enumeration).
+    """
+    from app.models import PasswordResetOTP
+    from app.utils.email_service import send_otp_email
+    from datetime import timedelta
+
+    client_ip = request.environ.get("HTTP_X_FORWARDED_FOR", request.remote_addr or "unknown")
+    client_ip = client_ip.split(",")[0].strip()
+
+    if _check_forgot_pw_rate(client_ip):
+        return jsonify({"message": "If that email is registered, an OTP has been sent."}), 200
+
+    data = request.get_json(silent=True) or {}
+    email = (data.get("email") or "").strip().lower()
+
+    # Always return the same message — do NOT reveal whether email exists
+    generic_msg = {"message": "If that email is registered, an OTP has been sent."}
+
+    if not email or not EMAIL_RE.match(email):
+        return jsonify(generic_msg), 200
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        return jsonify(generic_msg), 200
+
+    # Invalidate any previous unused OTPs for this user
+    try:
+        PasswordResetOTP.query.filter_by(user_id=user.id, used=False).update({"used": True})
+        db.session.flush()
+    except Exception:
+        db.session.rollback()
+
+    # Generate 6-digit OTP
+    otp_int = secrets.randbelow(1000000)
+    otp_str = f"{otp_int:06d}"
+    otp_hash = hashlib.sha256(otp_str.encode()).hexdigest()
+
+    expires_minutes = 5
+    otp_record = PasswordResetOTP(
+        user_id=user.id,
+        otp_hash=otp_hash,
+        expires_at=datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(minutes=expires_minutes),
+        ip_address=client_ip,
+    )
+    db.session.add(otp_record)
+
+    try:
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        return jsonify(generic_msg), 200
+
+    # Send email (fire-and-forget; never log OTP)
+    try:
+        send_otp_email(email, otp_str, expires_minutes)
+    except Exception as exc:
+        import logging
+        logging.getLogger(__name__).error("OTP email dispatch error: %s", type(exc).__name__)
+
+    return jsonify(generic_msg), 200
+
+
+@auth_bp.route("/verify-otp", methods=["POST"])
+def verify_otp():
+    """
+    POST /api/auth/verify-otp
+    Accepts { email, otp }. Verifies the OTP hash. On success, marks OTP as used,
+    generates a reset_token (secrets.token_urlsafe(32)), stores its SHA-256 hash
+    in a new OTP record (re-using the table with a special marker), and returns
+    the reset_token.
+    """
+    from app.models import PasswordResetOTP
+    from datetime import timedelta
+
+    data = request.get_json(silent=True) or {}
+    email = (data.get("email") or "").strip().lower()
+    otp_str = (data.get("otp") or "").strip()
+
+    err_resp = {"error": "Invalid or expired OTP."}, 400
+
+    if not email or not otp_str:
+        return jsonify({"error": "email and otp are required."}), 422
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        return jsonify(*err_resp)
+
+    otp_hash = hashlib.sha256(otp_str.encode()).hexdigest()
+
+    # Find the most recent valid OTP record for this user matching the hash
+    record = (
+        PasswordResetOTP.query
+        .filter_by(user_id=user.id, otp_hash=otp_hash, used=False)
+        .order_by(PasswordResetOTP.created_at.desc())
+        .first()
+    )
+
+    if not record:
+        # Increment attempts on the most recent unused record (brute-force mitigation)
+        latest = (
+            PasswordResetOTP.query
+            .filter_by(user_id=user.id, used=False)
+            .order_by(PasswordResetOTP.created_at.desc())
+            .first()
+        )
+        if latest:
+            latest.attempts = (latest.attempts or 0) + 1
+            if latest.attempts >= 5:
+                latest.used = True
+            try:
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+        return jsonify(*err_resp)
+
+    record.attempts = (record.attempts or 0) + 1
+    if not record.is_valid():
+        record.used = True
+        try:
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+        return jsonify(*err_resp)
+
+    # Mark OTP as used
+    record.used = True
+
+    # Generate a reset_token; store its hash as a new short-lived "token" record
+    reset_token = secrets.token_urlsafe(32)
+    token_hash = hashlib.sha256(reset_token.encode()).hexdigest()
+    token_record = PasswordResetOTP(
+        user_id=user.id,
+        otp_hash=token_hash,
+        expires_at=datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(minutes=15),
+        ip_address=request.environ.get("HTTP_X_FORWARDED_FOR", request.remote_addr or ""),
+    )
+    db.session.add(token_record)
+
+    try:
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        return jsonify({"error": "Internal error. Please try again."}), 500
+
+    return jsonify({"reset_token": reset_token, "message": "OTP verified. Use reset_token to set a new password."})
+
+
+@auth_bp.route("/reset-password", methods=["POST"])
+def reset_password():
+    """
+    POST /api/auth/reset-password
+    Accepts { email, reset_token, new_password, confirm_password }.
+    Verifies the reset_token hash, validates password, updates the hash.
+    """
+    from app.models import PasswordResetOTP
+
+    data = request.get_json(silent=True) or {}
+    email         = (data.get("email") or "").strip().lower()
+    reset_token   = (data.get("reset_token") or "").strip()
+    new_password  = data.get("new_password", "")
+    confirm_pwd   = data.get("confirm_password", "")
+
+    if not email or not reset_token or not new_password:
+        return jsonify({"error": "email, reset_token, and new_password are required."}), 422
+
+    err_token = {"error": "Invalid or expired reset token."}, 400
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        return jsonify(*err_token)
+
+    token_hash = hashlib.sha256(reset_token.encode()).hexdigest()
+    token_record = (
+        PasswordResetOTP.query
+        .filter_by(user_id=user.id, otp_hash=token_hash, used=False)
+        .order_by(PasswordResetOTP.created_at.desc())
+        .first()
+    )
+
+    if not token_record or not token_record.is_valid():
+        if token_record:
+            token_record.used = True
+            try:
+                db.session.commit()
+            except Exception:
+                db.session.rollback()
+        return jsonify(*err_token)
+
+    if new_password != confirm_pwd:
+        return jsonify({"error": "Passwords do not match."}), 422
+
+    pwd_err = _validate_password(new_password)
+    if pwd_err:
+        return jsonify({"error": pwd_err}), 422
+
+    # Update password
+    user.password_hash = hash_password(new_password)
+    token_record.used = True
+
+    # Invalidate all remaining OTP/token records for this user
+    PasswordResetOTP.query.filter_by(user_id=user.id, used=False).update({"used": True})
+
+    log_action(user.id, "PASSWORD_RESET", "User", user.id, {"method": "otp"})
+
+    try:
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        return jsonify({"error": "Failed to reset password. Please try again."}), 500
+
+    return jsonify({"message": "Password reset successfully. Please log in with your new password."})
 
 
 @auth_bp.route("/setup-admin", methods=["POST"])

@@ -1,5 +1,5 @@
 // Add Parcel Page — full form for creating a new land parcel record
-import React, { useState } from 'react'
+import React, { useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, Save, Loader2, AlertCircle, CheckCircle, MapPin } from 'lucide-react'
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet'
@@ -84,12 +84,79 @@ export default function AddParcelPage() {
   const [apiError, setApiError] = useState('')
   const [markerPos, setMarkerPos] = useState<[number, number] | null>(null)
   const [mapType, setMapType] = useState<'satellite-labels' | 'satellite' | 'osm' | 'street'>('satellite-labels')
+  const [geocodeStatus, setGeocodeStatus] = useState<'idle'|'loading'|'success'|'partial'|'error'>('idle')
+  const [geocodeMsg, setGeocodeMsg] = useState('')
+  const geocodeAbortRef = useRef<AbortController|null>(null)
 
   const set = (field: keyof FormData) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     setForm(f => ({ ...f, [field]: e.target.value }))
     if (errors[field]) setErrors(e2 => { const n = { ...e2 }; delete n[field]; return n })
+  }
+
+  const reverseGeocode = async (lat: number, lng: number) => {
+    // Cancel any pending request
+    if (geocodeAbortRef.current) geocodeAbortRef.current.abort()
+    const controller = new AbortController()
+    geocodeAbortRef.current = controller
+
+    setGeocodeStatus('loading')
+    setGeocodeMsg('Detecting location...')
+
+    try {
+      // Use Nominatim directly from frontend (backend proxy preferred but frontend fallback)
+      const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1&zoom=18&accept-language=en`
+      const res = await fetch(url, {
+        signal: controller.signal,
+        headers: { 'Accept-Language': 'en', 'User-Agent': 'LandGuard/1.0' }
+      })
+      if (!res.ok) throw new Error('Geocoding failed')
+      const data = await res.json()
+      const addr = data.address || {}
+
+      // India-specific field mapping
+      const state = addr.state || ''
+      const district = addr.state_district || addr.county || addr.district || ''
+      // Mandal: use county/suburb that differs from district
+      let mandal = ''
+      for (const key of ['county', 'suburb', 'town_district', 'village_district']) {
+        const val = addr[key]
+        if (val && val !== district) { mandal = val; break }
+      }
+      // Address: village/town + locality + postcode
+      const placeParts = [
+        addr.village || addr.hamlet || addr.neighbourhood || addr.locality || addr.town || addr.city || addr.suburb || '',
+        district,
+        state,
+        addr.postcode || ''
+      ].filter(Boolean)
+      const addressText = placeParts.join(', ')
+
+      // Check if aborted
+      if (controller.signal.aborted) return
+
+      // Update form fields
+      setForm(f => ({
+        ...f,
+        state: state || f.state,
+        district: district || f.district,
+        administrative_area: mandal || f.administrative_area,
+        address: addressText || f.address,
+      }))
+
+      const missing = !state || !district
+      setGeocodeStatus(missing ? 'partial' : 'success')
+      setGeocodeMsg(
+        missing
+          ? 'Location detected. Some fields could not be detected automatically — please fill them in.'
+          : `Location detected: ${district}${state ? ', ' + state : ''}`
+      )
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === 'AbortError') return
+      setGeocodeStatus('error')
+      setGeocodeMsg('Unable to detect location automatically. Please enter location details manually.')
+    }
   }
 
   const handleMapPick = (lat: number, lng: number) => {
@@ -100,6 +167,7 @@ export default function AddParcelPage() {
       centroid_lng: lng.toFixed(7),
     }))
     if (errors.centroid_lat) setErrors(e => { const n = { ...e }; delete n.centroid_lat; return n })
+    reverseGeocode(lat, lng)
   }
 
   const validate = (): boolean => {
@@ -298,6 +366,21 @@ export default function AddParcelPage() {
 
           {/* Coordinate inputs */}
           <div className="grid grid-cols-2 gap-4 mb-4">
+            {/* Geocoding Status Banner */}
+            {geocodeStatus !== 'idle' && (
+              <div className={`col-span-2 flex items-center gap-2 px-3 py-2 rounded-lg text-xs mb-3 ${
+                geocodeStatus === 'loading' ? 'bg-blue-50 border border-blue-200 text-blue-700' :
+                geocodeStatus === 'success' ? 'bg-green-50 border border-green-200 text-green-700' :
+                geocodeStatus === 'partial' ? 'bg-amber-50 border border-amber-200 text-amber-700' :
+                'bg-red-50 border border-red-200 text-red-600'
+              }`}>
+                {geocodeStatus === 'loading' && <Loader2 size={12} className="animate-spin flex-shrink-0" />}
+                {geocodeStatus === 'success' && <CheckCircle size={12} className="flex-shrink-0" />}
+                {geocodeStatus === 'partial' && <AlertCircle size={12} className="flex-shrink-0" />}
+                {geocodeStatus === 'error' && <AlertCircle size={12} className="flex-shrink-0" />}
+                <span>{geocodeMsg}</span>
+              </div>
+            )}
             <Field label="Latitude" error={errors.centroid_lat}>
               <input id="field-lat" type="number" step="0.0000001" className="input-field font-mono"
                 placeholder="e.g. 16.5062" value={form.centroid_lat} onChange={set('centroid_lat')} />

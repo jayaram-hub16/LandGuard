@@ -3,6 +3,12 @@ Parcels API Blueprint — /api/parcels
 """
 import json
 import os
+import time
+import hashlib
+import urllib.request
+import urllib.parse
+import urllib.error
+from datetime import datetime, timezone
 from flask import Blueprint, request, jsonify, send_file, current_app
 from app import db
 from app.models import LandParcel, OwnershipRecord, LandUseCategory
@@ -10,6 +16,38 @@ from app.utils.auth import login_required, admin_required
 from app.utils.audit import log_action
 
 parcels_bp = Blueprint("parcels", __name__)
+
+# ── Reverse-geocode cache & throttle ─────────────────────────────────────────
+_rgc_cache: dict = {}          # key → {"result": {...}, "ts": float}
+_RGC_CACHE_MAX = 200
+_RGC_CACHE_TTL = 600           # 10 minutes
+
+_rgc_throttle: dict = {}       # ip → last_request_ts
+
+
+def _rgc_cache_get(key: str):
+    entry = _rgc_cache.get(key)
+    if entry and (time.time() - entry["ts"]) < _RGC_CACHE_TTL:
+        return entry["result"]
+    return None
+
+
+def _rgc_cache_put(key: str, result: dict):
+    if len(_rgc_cache) >= _RGC_CACHE_MAX:
+        # Evict oldest entry
+        oldest = min(_rgc_cache, key=lambda k: _rgc_cache[k]["ts"])
+        del _rgc_cache[oldest]
+    _rgc_cache[key] = {"result": result, "ts": time.time()}
+
+
+def _rgc_throttle_ok(ip: str) -> bool:
+    """Returns True if the request is allowed (1 req/sec per IP)."""
+    now = time.time()
+    last = _rgc_throttle.get(ip, 0)
+    if now - last < 1.0:
+        return False
+    _rgc_throttle[ip] = now
+    return True
 
 
 
@@ -25,12 +63,13 @@ def list_parcels():
     q = LandParcel.query
 
     if search:
-        q = q.filter(
+        q = q.outerjoin(OwnershipRecord, LandParcel.ownership_id == OwnershipRecord.id).filter(
             db.or_(
                 LandParcel.parcel_id.ilike(f"%{search}%"),
                 LandParcel.administrative_area.ilike(f"%{search}%"),
                 LandParcel.district.ilike(f"%{search}%"),
                 LandParcel.address.ilike(f"%{search}%"),
+                OwnershipRecord.owner_name.ilike(f"%{search}%"),
             )
         )
     if flagged == "true":
@@ -123,6 +162,100 @@ def claim_parcel():
     log_action(user.id, "PARCEL_CLAIMED", "LandParcel", parcel.id, {"parcel_id": parcel.parcel_id})
     db.session.commit()
     return jsonify({"message": f"Parcel '{parcel.parcel_id}' successfully linked to your account.", "parcel": parcel.to_dict()})
+
+
+@parcels_bp.route("/reverse-geocode", methods=["GET"])
+@login_required
+def reverse_geocode():
+    """
+    GET /api/parcels/reverse-geocode?lat=&lng=
+    Calls Nominatim to reverse-geocode a coordinate pair into Indian admin fields.
+    Rate-limited: 1 req/sec per IP. Cached: max 200 entries, 10-min TTL.
+    """
+    client_ip = request.environ.get("HTTP_X_FORWARDED_FOR", request.remote_addr or "unknown")
+    # Only use the first IP if there's a chain
+    client_ip = client_ip.split(",")[0].strip()
+
+    try:
+        lat = float(request.args.get("lat", ""))
+        lng = float(request.args.get("lng", ""))
+    except (ValueError, TypeError):
+        return jsonify({"error": "Valid lat and lng query parameters are required."}), 422
+
+    if not (-90 <= lat <= 90) or not (-180 <= lng <= 180):
+        return jsonify({"error": "lat/lng values out of range."}), 422
+
+    cache_key = f"{round(lat, 4)},{round(lng, 4)}"
+    cached = _rgc_cache_get(cache_key)
+    if cached:
+        return jsonify(cached)
+
+    if not _rgc_throttle_ok(client_ip):
+        return jsonify({"error": "Rate limit exceeded. Please wait a moment before retrying."}), 429
+
+    url = (
+        f"https://nominatim.openstreetmap.org/reverse"
+        f"?format=json&lat={lat}&lon={lng}&addressdetails=1&zoom=18&accept-language=en"
+    )
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "LandGuard/1.0"})
+        with urllib.request.urlopen(req, timeout=8) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+    except urllib.error.URLError as exc:
+        current_app.logger.error("Nominatim request failed: %s", exc)
+        return jsonify({"error": "Reverse geocoding service unavailable."}), 503
+    except Exception as exc:
+        current_app.logger.error("Nominatim unexpected error: %s", exc)
+        return jsonify({"error": "Reverse geocoding failed."}), 500
+
+    addr = data.get("address", {})
+
+    # Map fields for India
+    state = addr.get("state", "")
+    district = (
+        addr.get("state_district")
+        or addr.get("county")
+        or addr.get("district")
+        or ""
+    )
+
+    # administrative_area (mandal/taluk): first candidate different from district
+    adm_candidates = [
+        addr.get("county"),
+        addr.get("suburb"),
+        addr.get("town_district"),
+        addr.get("state_district"),
+    ]
+    administrative_area = ""
+    for cand in adm_candidates:
+        if cand and cand != district:
+            administrative_area = cand
+            break
+
+    # Build human-readable address text
+    locality = (
+        addr.get("village")
+        or addr.get("hamlet")
+        or addr.get("town")
+        or addr.get("city")
+        or addr.get("neighbourhood")
+        or ""
+    )
+    postcode = addr.get("postcode", "")
+    parts = [p for p in [locality, district, state] if p]
+    address_text = ", ".join(parts)
+    if postcode:
+        address_text = f"{address_text} {postcode}".strip(", ")
+
+    result = {
+        "state": state,
+        "district": district,
+        "administrative_area": administrative_area,
+        "address": address_text,
+        "postcode": postcode,
+    }
+    _rgc_cache_put(cache_key, result)
+    return jsonify(result)
 
 
 @parcels_bp.route("/<parcel_id>", methods=["GET"])

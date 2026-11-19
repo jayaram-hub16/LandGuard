@@ -1,9 +1,9 @@
 // Land Parcels List Page
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Search, Filter, Plus, AlertTriangle, FileText, ChevronLeft,
-  ChevronRight, Loader2, Eye, Trash2, RefreshCw, Map
+  ChevronRight, Loader2, Eye, Trash2, RefreshCw, Map, X
 } from 'lucide-react'
 import { parcelsAPI } from '../../services/api'
 import { useAuth } from '../../context/AuthContext'
@@ -21,11 +21,24 @@ export default function ParcelsPage() {
   const [pages, setPages] = useState(1)
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const [searchInput, setSearchInput] = useState('')
   const [flaggedOnly, setFlaggedOnly] = useState(false)
   const [landUseFilter, setLandUseFilter] = useState('')
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => { load() }, [page, flaggedOnly, landUseFilter])
+
+  // Debounced search — fires 400ms after user stops typing
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      setSearch(searchInput)
+      setPage(1)
+      loadWithSearch(searchInput)
+    }, 400)
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current) }
+  }, [searchInput])
 
   const load = async (q = search) => {
     setLoading(true)
@@ -42,10 +55,26 @@ export default function ParcelsPage() {
     finally { setLoading(false) }
   }
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
+  const loadWithSearch = async (q: string) => {
+    setLoading(true)
+    try {
+      const res = await parcelsAPI.list({
+        page: 1, per_page: 20, search: q,
+        flagged: flaggedOnly ? 'true' : '',
+        land_use: landUseFilter,
+      })
+      setParcels(res.data.parcels || [])
+      setTotal(res.data.total || 0)
+      setPages(res.data.pages || 1)
+    } catch { /* handled */ }
+    finally { setLoading(false) }
+  }
+
+  const handleClearSearch = () => {
+    setSearchInput('')
+    setSearch('')
     setPage(1)
-    load(search)
+    loadWithSearch('')
   }
 
   const handleDelete = async (parcelId: string) => {
@@ -81,22 +110,39 @@ export default function ParcelsPage() {
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="glass-card p-4 flex flex-wrap gap-3 items-end">
-        <form onSubmit={handleSearch} className="flex gap-2 flex-1 min-w-[200px]">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
-            <input
-              id="parcel-search-input"
-              type="text"
-              placeholder="Search parcel ID, district, address..."
-              className="input-field pl-9 text-sm py-2"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-            />
-          </div>
-          <button type="submit" className="btn-primary text-sm px-4 py-2" id="parcel-search-btn">Search</button>
-        </form>
+      {/* Smart Search Bar */}
+      <div className="glass-card p-4 space-y-3">
+        <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl shadow-sm px-3 py-2.5 focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100 transition-all">
+          <Search size={16} className="text-slate-400 flex-shrink-0" />
+          <input
+            id="parcel-search-input"
+            type="text"
+            placeholder="Search by Parcel ID, Land Number, Owner Name, Village, District or Location..."
+            className="flex-1 text-sm bg-transparent outline-none text-slate-800 placeholder:text-slate-400"
+            value={searchInput}
+            onChange={e => setSearchInput(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Escape') handleClearSearch() }}
+          />
+          {searchInput && (
+            <button
+              type="button"
+              onClick={handleClearSearch}
+              className="text-slate-400 hover:text-slate-700 transition-colors flex-shrink-0"
+              title="Clear search"
+            >
+              <X size={14} />
+            </button>
+          )}
+          {loading && searchInput && <Loader2 size={14} className="animate-spin text-blue-500 flex-shrink-0" />}
+        </div>
+        {searchInput && !loading && (
+          <p className="text-xs text-slate-500 px-1">
+            {total > 0 ? `${total} result${total !== 1 ? 's' : ''} found for "${searchInput}"` : `No parcels match "${searchInput}"`}
+          </p>
+        )}
+
+        <div className="flex flex-wrap gap-3 items-center">
+        <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Filters:</span>
 
         <select
           id="parcels-landuse-filter"
@@ -122,9 +168,10 @@ export default function ParcelsPage() {
           <AlertTriangle size={14} /> Flagged Only
         </button>
 
-        <button onClick={() => load()} className="btn-ghost p-2" title="Refresh">
-          <RefreshCw size={15} />
-        </button>
+          <button onClick={() => load()} className="btn-ghost p-2 ml-auto" title="Refresh">
+            <RefreshCw size={15} />
+          </button>
+        </div>
       </div>
 
       {/* Table */}

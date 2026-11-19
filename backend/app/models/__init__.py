@@ -764,3 +764,30 @@ class ParcelBoundaryHistory(db.Model):
             "change_reason":self.change_reason,
             "changed_at":   self.changed_at.isoformat() if self.changed_at else None,
         }
+
+
+# ─────────────────────────────────────────────
+# Password Reset OTP
+# ─────────────────────────────────────────────
+
+class PasswordResetOTP(db.Model):
+    """Secure password reset OTP. Stored as SHA-256 hash. Single-use, 5 min TTL."""
+    __tablename__ = "password_reset_otps"
+
+    id = db.Column(db.String(36), primary_key=True, default=generate_uuid)
+    user_id = db.Column(db.String(36), db.ForeignKey("users.id"), nullable=False)
+    otp_hash = db.Column(db.String(512), nullable=False)
+    expires_at = db.Column(db.DateTime, nullable=False)
+    used = db.Column(db.Boolean, default=False)
+    attempts = db.Column(db.Integer, default=0)
+    ip_address = db.Column(db.String(45))
+    created_at = db.Column(db.DateTime, default=utcnow)
+
+    user = db.relationship("User", foreign_keys=[user_id])
+
+    def is_expired(self):
+        from datetime import datetime, timezone
+        return datetime.now(timezone.utc).replace(tzinfo=None) > self.expires_at
+
+    def is_valid(self):
+        return not self.used and not self.is_expired() and self.attempts < 5
