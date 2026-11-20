@@ -525,13 +525,16 @@ def setup_admin():
 def test_email_config():
     """
     POST /api/auth/test-email
-    Admin-only: test SMTP configuration and optionally send a test email.
+    Admin-only: test Brevo or SMTP configuration and optionally send a test email.
     Body: { "to_email": "optional@example.com" }
-    Returns SMTP status, connection result, and send result.
-    Never returns SMTP password or OTP values.
+    Returns provider status, connection/send result.
+    Never returns API keys, SMTP passwords, or OTP values.
     """
     import smtplib
-    from app.utils.email_service import _get_smtp_config
+    from app.utils.email_service import (
+        _get_smtp_config, _get_brevo_config,
+        check_brevo_config, _send_via_brevo,
+    )
 
     # Use current_user from request context (set by @login_required)
     current_user = request.current_user
@@ -541,11 +544,75 @@ def test_email_config():
     if role not in ("admin", "super_admin"):
         return jsonify({"error": "Admin access required."}), 403
 
-    cfg = _get_smtp_config()
-    data = request.get_json(silent=True) or {}
+    data     = request.get_json(silent=True) or {}
     to_email = (data.get("to_email") or "").strip() or current_user.email
 
+    # ── Determine active provider ────────────────────────────────────────────
+    brevo_cfg = _get_brevo_config()
+    provider  = brevo_cfg["provider"]   # "brevo" or "smtp"
+
+    # ── Brevo test path ──────────────────────────────────────────────────────
+    if provider == "brevo":
+        ok, err = check_brevo_config()
+        result = {
+            "provider":        "brevo",
+            # Surface non-secret fields only
+            "smtp_host":       "(Brevo API — no SMTP host)",
+            "smtp_port":       0,
+            "smtp_username":   "(Brevo API — no SMTP username)",
+            "smtp_from_email": brevo_cfg["from_email"] or "(not set)",
+            "smtp_from_name":  brevo_cfg["from_name"],
+            "use_tls":         True,
+            "config_ok":       ok,
+            "connection_ok":   False,
+            "auth_ok":         False,
+            "send_ok":         False,
+            "error":           None,
+            "to_email":        to_email,
+        }
+        if not ok:
+            result["error"] = err
+            return jsonify(result), 200
+
+        # Attempt a real Brevo send
+        import json as _json
+        import urllib.request, urllib.error
+        # Build a test-email payload
+        html_body = (
+            "<h2>✅ LandGuard Brevo Test Successful</h2>"
+            "<p>Your Brevo transactional email configuration is working correctly. "
+            "OTP password-recovery emails will be delivered via Brevo.</p>"
+            "<p><small>Sent by LandGuard Admin Email Test</small></p>"
+        )
+        plain_text = "LandGuard Brevo Test: configuration is working."
+        subject    = "LandGuard – Brevo Email Configuration Test"
+
+        result["connection_ok"] = True   # Brevo is REST — connection = API reachable
+        result["auth_ok"]       = False  # will be set True on successful API call
+
+        send_ok, send_err = _send_via_brevo(to_email, subject, html_body, plain_text, brevo_cfg)
+        if send_ok:
+            result["auth_ok"]   = True
+            result["send_ok"]   = True
+        else:
+            # 401 → auth failed; 400 → sender not verified; network → not reachable
+            if "API key" in send_err or "authorised" in send_err:
+                result["connection_ok"] = True
+                result["auth_ok"]       = False
+            elif "not reach" in send_err or "network" in send_err.lower():
+                result["connection_ok"] = False
+            result["error"] = send_err
+
+        logger.info(
+            "Brevo test by admin %s → from=%s send=%s",
+            current_user.email, brevo_cfg["from_email"], result["send_ok"]
+        )
+        return jsonify(result), 200
+
+    # ── SMTP test path (existing logic, unchanged) ───────────────────────────
+    cfg = _get_smtp_config()
     result = {
+        "provider":        "smtp",
         "smtp_host":       cfg["host"] or "(not set)",
         "smtp_port":       cfg["port"],
         "smtp_username":   cfg["username"] or "(not set)",
@@ -574,7 +641,6 @@ def test_email_config():
                 server.ehlo()
                 server.login(cfg["username"], cfg["password"])
                 result["auth_ok"] = True
-                # Send a real test email
                 from email.mime.multipart import MIMEMultipart
                 from email.mime.text import MIMEText
                 msg = MIMEMultipart("alternative")
@@ -629,24 +695,33 @@ def test_email_config():
     return jsonify(result), 200
 
 
-# ── Safe public SMTP presence check (no credentials exposed) ───────────────
+# ── Safe public email env-var presence check (no credentials exposed) ───────
 
 @auth_bp.route("/smtp-check", methods=["GET"])
 def smtp_check():
     """
     GET /api/auth/smtp-check
-    Public (no auth required). Returns ONLY which SMTP env var names are
-    present/absent. Never returns values, passwords, or OTP data.
+    Public (no auth required). Returns ONLY which email env var names are
+    present/absent — never returns values, passwords, API keys, or OTP data.
+    Covers both Brevo (EMAIL_PROVIDER=brevo) and SMTP vars.
     Used to verify that Render/cloud environment variables are loading.
     """
     import os
-    vars_to_check = [
+    smtp_vars = [
         "SMTP_HOST", "SMTP_PORT", "SMTP_USERNAME",
         "SMTP_PASSWORD", "SMTP_FROM_EMAIL", "SMTP_FROM_NAME",
         "MAIL_SERVER", "MAIL_PORT", "MAIL_USERNAME",
-        "MAIL_PASSWORD", "MAIL_USE_TLS", "FLASK_ENV",
+        "MAIL_PASSWORD", "MAIL_USE_TLS",
     ]
-    presence = {v: bool(os.environ.get(v, "").strip()) for v in vars_to_check}
+    brevo_vars = [
+        "EMAIL_PROVIDER", "BREVO_API_KEY",
+        "EMAIL_FROM_EMAIL", "EMAIL_FROM_NAME",
+    ]
+    all_vars = smtp_vars + brevo_vars + ["FLASK_ENV"]
+    presence = {v: bool(os.environ.get(v, "").strip()) for v in all_vars}
+
+    provider = os.environ.get("EMAIL_PROVIDER", "smtp").lower()
+
     smtp_configured = bool(
         os.environ.get("SMTP_HOST") or os.environ.get("MAIL_SERVER", "")
     ) and bool(
@@ -654,15 +729,30 @@ def smtp_check():
     ) and bool(
         os.environ.get("SMTP_PASSWORD") or os.environ.get("MAIL_PASSWORD", "")
     )
+
+    brevo_configured = bool(os.environ.get("BREVO_API_KEY", "").strip()) and bool(
+        os.environ.get("EMAIL_FROM_EMAIL", "").strip()
+        or os.environ.get("SMTP_FROM_EMAIL", "").strip()
+        or os.environ.get("SMTP_USERNAME", "").strip()
+    )
+
+    email_configured = (
+        (provider == "brevo" and brevo_configured)
+        or (provider != "brevo" and smtp_configured)
+    )
+
     logger.info(
-        "SMTP check: configured=%s present=%s",
-        smtp_configured,
+        "Email env check: provider=%s brevo_ok=%s smtp_ok=%s present=%s",
+        provider, brevo_configured, smtp_configured,
         [k for k, v in presence.items() if v]
     )
     return jsonify({
-        "smtp_configured": smtp_configured,
-        "vars_present":    {k: v for k, v in presence.items() if v},
-        "vars_missing":    {k: v for k, v in presence.items() if not v},
-        "flask_env":       os.environ.get("FLASK_ENV", "(not set)"),
-        "note":            "Variable values are never returned. Only presence is shown."
+        "provider":          provider,
+        "email_configured":  email_configured,
+        "smtp_configured":   smtp_configured,
+        "brevo_configured":  brevo_configured,
+        "vars_present":      {k: v for k, v in presence.items() if v},
+        "vars_missing":      {k: v for k, v in presence.items() if not v},
+        "flask_env":         os.environ.get("FLASK_ENV", "(not set)"),
+        "note":              "Variable values are never returned. Only presence is shown.",
     }), 200

@@ -1,4 +1,5 @@
 interface EmailTestResult {
+  provider?: string
   smtp_host: string
   smtp_port: number
   smtp_username: string
@@ -161,11 +162,11 @@ export default function SettingsPage() {
       {isAdmin() && (
         <div className="glass-card p-6">
           <h2 className="font-semibold text-slate-800 dark:text-slate-100 mb-1 flex items-center gap-2">
-            <Mail size={16} className="text-indigo-600" /> Email / SMTP Configuration Test
+            <Mail size={16} className="text-indigo-600" /> Email / OTP Delivery Configuration Test
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mb-5">
-            Verify that the backend SMTP settings are correct and OTP emails can be delivered.
-            Results are shown here only — SMTP credentials are never exposed.
+            Verify that the backend email settings are correct and OTP emails can be delivered.
+            Results are shown here only — API keys and credentials are never exposed.
           </p>
 
           {/* Step 1 — quick env-var presence check (no auth needed) */}
@@ -194,7 +195,7 @@ export default function SettingsPage() {
             </div>
             {smtpCheckResult && (
               <div className={`rounded-xl px-4 py-3 text-xs border space-y-1 ${
-                smtpCheckResult.smtp_configured
+                smtpCheckResult.email_configured
                   ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300'
                   : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300'
               }`}>
@@ -202,7 +203,14 @@ export default function SettingsPage() {
                   ? <div className="text-red-600 dark:text-red-400 font-semibold">{String(smtpCheckResult.error)}</div>
                   : <>
                       <div className="font-semibold">
-                        {smtpCheckResult.smtp_configured ? '✅ SMTP vars are set in backend' : '⚠ SMTP vars are missing in backend'}
+                        {smtpCheckResult.email_configured
+                          ? `✅ Email configured via ${String(smtpCheckResult.provider).toUpperCase()}`
+                          : `⚠ Email not configured (provider: ${String(smtpCheckResult.provider)})`}
+                      </div>
+                      <div>Provider: <code className="font-mono">{String(smtpCheckResult.provider)}</code>
+                        {smtpCheckResult.provider === 'brevo'
+                          ? (smtpCheckResult.brevo_configured ? ' ✅ Brevo ready' : ' ⚠ Brevo vars missing')
+                          : (smtpCheckResult.smtp_configured ? ' ✅ SMTP ready' : ' ⚠ SMTP vars missing')}
                       </div>
                       <div>Env: <code className="font-mono">{String(smtpCheckResult.flask_env)}</code></div>
                       <div>Present: <span className="font-mono">
@@ -217,9 +225,9 @@ export default function SettingsPage() {
             )}
           </div>
 
-          {/* Step 2 — Full SMTP test with real send */}
+          {/* Step 2 — Full email test with real send */}
           <div className="text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wider mb-2">
-            Step 2 — Full SMTP Connection &amp; Send Test
+            Step 2 — Full Email Connection &amp; Send Test
           </div>
           <div className="flex gap-2 mb-4">
             <input
@@ -251,24 +259,50 @@ export default function SettingsPage() {
 
           {emailTestResult && (
             <div className="space-y-3 text-sm">
+              {/* Provider badge */}
+              {emailTestResult.provider && (
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="text-slate-500 dark:text-slate-400">Active provider:</span>
+                  <span className={`font-semibold px-2 py-0.5 rounded-full ${
+                    emailTestResult.provider === 'brevo'
+                      ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
+                  }`}>
+                    {emailTestResult.provider === 'brevo' ? '📧 Brevo API' : '📮 SMTP'}
+                  </span>
+                </div>
+              )}
+
               {/* Config row */}
               <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl p-4 space-y-2">
                 <div className="font-semibold text-slate-700 dark:text-slate-200 text-xs uppercase tracking-wider mb-2">
-                  SMTP Configuration
+                  {emailTestResult.provider === 'brevo' ? 'Brevo' : 'SMTP'} Configuration
                 </div>
-                {[
-                  ['Host', emailTestResult.smtp_host],
-                  ['Port', emailTestResult.smtp_port],
-                  ['Username', emailTestResult.smtp_username],
-                  ['From Address', emailTestResult.smtp_from_email],
-                  ['From Name', emailTestResult.smtp_from_name],
-                  ['TLS', emailTestResult.use_tls ? 'Yes (STARTTLS)' : 'No (SSL)'],
-                ].map(([label, val]) => (
-                  <div key={label as string} className="flex items-center justify-between text-xs">
-                    <span className="text-slate-500 dark:text-slate-400">{label as string}</span>
-                    <span className="font-mono text-slate-800 dark:text-slate-200">{String(val ?? '—')}</span>
-                  </div>
-                ))}
+                {emailTestResult.provider === 'brevo'
+                  ? [
+                      ['From Address', emailTestResult.smtp_from_email],
+                      ['From Name',    emailTestResult.smtp_from_name],
+                      ['Transport',    'Brevo REST API (api.brevo.com)'],
+                    ].map(([label, val]) => (
+                      <div key={label as string} className="flex items-center justify-between text-xs">
+                        <span className="text-slate-500 dark:text-slate-400">{label as string}</span>
+                        <span className="font-mono text-slate-800 dark:text-slate-200">{String(val ?? '—')}</span>
+                      </div>
+                    ))
+                  : [
+                      ['Host',         emailTestResult.smtp_host],
+                      ['Port',         emailTestResult.smtp_port],
+                      ['Username',     emailTestResult.smtp_username],
+                      ['From Address', emailTestResult.smtp_from_email],
+                      ['From Name',    emailTestResult.smtp_from_name],
+                      ['TLS',          emailTestResult.use_tls ? 'Yes (STARTTLS)' : 'No (SSL)'],
+                    ].map(([label, val]) => (
+                      <div key={label as string} className="flex items-center justify-between text-xs">
+                        <span className="text-slate-500 dark:text-slate-400">{label as string}</span>
+                        <span className="font-mono text-slate-800 dark:text-slate-200">{String(val ?? '—')}</span>
+                      </div>
+                    ))
+                }
               </div>
 
               {/* Status indicators */}
@@ -320,18 +354,38 @@ export default function SettingsPage() {
               {/* Setup hint when not configured */}
               {!emailTestResult.config_ok && (
                 <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4 text-xs text-amber-800 dark:text-amber-300 space-y-1">
-                  <div className="font-semibold">How to configure SMTP on Render:</div>
-                  <ol className="list-decimal list-inside space-y-0.5">
-                    <li>Go to your Render service → Environment</li>
-                    <li>Add: <code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">SMTP_HOST</code> = smtp.gmail.com</li>
-                    <li>Add: <code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">SMTP_PORT</code> = 587</li>
-                    <li>Add: <code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">SMTP_USERNAME</code> = your Gmail address</li>
-                    <li>Add: <code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">SMTP_PASSWORD</code> = 16-char App Password (not login password)</li>
-                    <li>Add: <code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">SMTP_FROM_EMAIL</code> = same Gmail address</li>
-                    <li>Redeploy the backend service, then test again here.</li>
-                  </ol>
-                  <div className="mt-2 font-semibold">Generate Gmail App Password:</div>
-                  <div>Google Account → Security → 2-Step Verification → App Passwords → Select app: Mail → Generate</div>
+                  {emailTestResult.provider === 'brevo' ? (
+                    <>
+                      <div className="font-semibold">How to configure Brevo on Render:</div>
+                      <ol className="list-decimal list-inside space-y-0.5">
+                        <li>Go to your Render service → Environment</li>
+                        <li>Add: <code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">EMAIL_PROVIDER</code> = brevo</li>
+                        <li>Add: <code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">BREVO_API_KEY</code> = your Brevo API key</li>
+                        <li>Add: <code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">EMAIL_FROM_EMAIL</code> = your verified sender email</li>
+                        <li>Add: <code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">EMAIL_FROM_NAME</code> = LandGuard</li>
+                        <li>Redeploy the backend service, then test again here.</li>
+                      </ol>
+                      <div className="mt-2 font-semibold">Get your Brevo API key:</div>
+                      <div>Brevo Dashboard → Settings → API Keys → Create a new API key</div>
+                      <div className="mt-1 font-semibold">Verify your sender email:</div>
+                      <div>Brevo Dashboard → Senders & Dedicated IPs → Add a new sender → verify</div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="font-semibold">How to configure SMTP on Render:</div>
+                      <ol className="list-decimal list-inside space-y-0.5">
+                        <li>Go to your Render service → Environment</li>
+                        <li>Add: <code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">SMTP_HOST</code> = smtp.gmail.com</li>
+                        <li>Add: <code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">SMTP_PORT</code> = 587</li>
+                        <li>Add: <code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">SMTP_USERNAME</code> = your Gmail address</li>
+                        <li>Add: <code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">SMTP_PASSWORD</code> = 16-char App Password (not login password)</li>
+                        <li>Add: <code className="bg-amber-100 dark:bg-amber-900 px-1 rounded">SMTP_FROM_EMAIL</code> = same Gmail address</li>
+                        <li>Redeploy the backend service, then test again here.</li>
+                      </ol>
+                      <div className="mt-2 font-semibold">Generate Gmail App Password:</div>
+                      <div>Google Account → Security → 2-Step Verification → App Passwords → Select app: Mail → Generate</div>
+                    </>
+                  )}
                 </div>
               )}
             </div>
