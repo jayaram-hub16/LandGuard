@@ -252,10 +252,14 @@ export default function MapPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
-          <h1 className="text-xl font-bold text-slate-900">Interactive GIS Map</h1>
+          <h1 className="text-xl font-bold text-slate-900">
+            {is3D ? '🌏 3D India GIS Map' : 'Interactive GIS Map'}
+          </h1>
           <p className="text-slate-400 text-xs mt-0.5">
-            {loading ? 'Loading...' : `${parcels.length} parcels loaded`} ·
-            Basemap tiles: ESRI World Imagery + Labels, © OpenStreetMap / CARTO contributors
+            {loading ? 'Loading...' : `${parcels.length} parcels · ${detections.length} detections`}
+            {is3D
+              ? ' · Apple Maps-inspired 3D view · Satellite + OSM buildings · India-focused'
+              : ' · ESRI World Imagery + Labels · © OpenStreetMap / CARTO'}
           </p>
         </div>
         <div className="flex gap-2 flex-wrap">
@@ -288,9 +292,9 @@ export default function MapPage() {
               onClick={() => setIs3D(true)}
               className={`flex items-center gap-1.5 px-3 py-2 transition-all
                 ${is3D ? 'bg-indigo-600 text-white' : 'bg-white text-slate-500 hover:bg-slate-50'}`}
-              id="map-3d-btn" title="3D map"
+              id="map-3d-btn" title="3D Apple Maps-style India map"
             >
-              <Building2 size={13} /> 3D
+              <Building2 size={13} /> 3D India
             </button>
           </div>
           <button
@@ -309,19 +313,22 @@ export default function MapPage() {
         {is3D && (
           <Suspense fallback={
             <div className="flex-1 flex items-center justify-center bg-slate-900 rounded-xl border border-slate-200/80">
-              <div className="text-white text-sm flex items-center gap-3">
-                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"/>
-                Loading 3D engine…
+              <div className="text-white text-sm flex flex-col items-center gap-3">
+                <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"/>
+                <span>Loading 3D India GIS map…</span>
+                <span className="text-slate-400 text-xs">Fetching satellite imagery &amp; building data</span>
               </div>
             </div>
           }>
-            <Map3DView
-              parcels={filteredParcels}
-              detections={detections}
-              selectedParcel={selectedParcel}
-              onParcelSelect={handleParcelSelect}
-              onClose={() => setIs3D(false)}
-            />
+            <div className="flex-1 rounded-xl overflow-hidden border border-slate-200/80">
+              <Map3DView
+                parcels={filteredParcels}
+                detections={detections}
+                selectedParcel={selectedParcel}
+                onParcelSelect={handleParcelSelect}
+                onClose={() => setIs3D(false)}
+              />
+            </div>
           </Suspense>
         )}
         {/* ── 2D map layout ─────────────────────────────────────────── */}
