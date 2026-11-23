@@ -1,5 +1,5 @@
 // Interactive GIS Map Page — improved basemaps, real parcel overlays, map search, occupation detection overlays
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback, lazy, Suspense } from 'react'
 import {
   MapContainer, TileLayer, GeoJSON, Marker, Popup,
   LayersControl, LayerGroup, useMap
@@ -7,11 +7,14 @@ import {
 import L from 'leaflet'
 import {
   Search, Layers, AlertTriangle, X, Filter, RefreshCw,
-  MapPin, Maximize2, Minimize2, Loader2, Shield
+  MapPin, Maximize2, Minimize2, Loader2, Shield, Building2
 } from 'lucide-react'
 import { parcelsAPI, detectionsAPI } from '../services/api'
 import type { LandParcel, EncroachmentDetection } from '../types'
 import 'leaflet/dist/leaflet.css'
+
+// Lazy-load the 3D view to avoid loading MapLibre GL until needed
+const Map3DView = lazy(() => import('../components/map3d/Map3DView'))
 
 // Fix leaflet icon in Vite
 delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl
@@ -161,6 +164,7 @@ export default function MapPage() {
   const [expanded, setExpanded] = useState(false)
   const [geocodeResult, setGeocodeResult] = useState<string | null>(null)
   const [searching, setSearching] = useState(false)
+  const [is3D, setIs3D] = useState(false)
   const [layers, setLayers] = useState({
     parcels: true,
     detections: true,
@@ -266,6 +270,29 @@ export default function MapPage() {
           >
             <Filter size={14} /> {filterFlagged ? 'Flagged Only' : 'Show All'}
           </button>
+          {/* ── 2D / 3D map toggle ── */}
+          <div className="flex rounded-lg border border-slate-300 overflow-hidden text-xs font-semibold">
+            <button
+              onClick={() => setIs3D(false)}
+              className={`flex items-center gap-1.5 px-3 py-2 transition-all
+                ${!is3D ? 'bg-indigo-600 text-white' : 'bg-white text-slate-500 hover:bg-slate-50'}`}
+              id="map-2d-btn" title="2D map"
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <rect x="3" y="3" width="18" height="18" rx="2"/>
+                <path d="M3 9h18M9 3v18"/>
+              </svg>
+              2D
+            </button>
+            <button
+              onClick={() => setIs3D(true)}
+              className={`flex items-center gap-1.5 px-3 py-2 transition-all
+                ${is3D ? 'bg-indigo-600 text-white' : 'bg-white text-slate-500 hover:bg-slate-50'}`}
+              id="map-3d-btn" title="3D map"
+            >
+              <Building2 size={13} /> 3D
+            </button>
+          </div>
           <button
             onClick={() => setExpanded(!expanded)}
             className="btn-ghost p-2"
@@ -278,6 +305,27 @@ export default function MapPage() {
       </div>
 
       <div className="flex gap-3" style={{ height: mapHeight }}>
+        {/* ── 3D map (lazy-loaded MapLibre GL) ─────────────────────── */}
+        {is3D && (
+          <Suspense fallback={
+            <div className="flex-1 flex items-center justify-center bg-slate-900 rounded-xl border border-slate-200/80">
+              <div className="text-white text-sm flex items-center gap-3">
+                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"/>
+                Loading 3D engine…
+              </div>
+            </div>
+          }>
+            <Map3DView
+              parcels={filteredParcels}
+              detections={detections}
+              selectedParcel={selectedParcel}
+              onParcelSelect={handleParcelSelect}
+              onClose={() => setIs3D(false)}
+            />
+          </Suspense>
+        )}
+        {/* ── 2D map layout ─────────────────────────────────────────── */}
+        {!is3D && (<>
         {/* Sidebar — collapsible on mobile via CSS */}
         {!expanded && (
           <div className="w-64 flex-shrink-0 flex flex-col gap-2 overflow-hidden">
@@ -604,6 +652,7 @@ export default function MapPage() {
             </div>
           </div>
         )}
+        </>)}
       </div>
     </div>
   )
