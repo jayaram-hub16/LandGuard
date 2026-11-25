@@ -174,3 +174,48 @@ def test_admin_can_delete_parcel(client, admin_user, app):
         r = client.delete(f"/api/parcels/{parcel_id}",
                           headers={"Authorization": f"Bearer {token}"})
         assert r.status_code == 200
+
+
+# ── Test 13: /api/admin/stats & /api/admin/dashboard with pending detections ──
+def test_admin_stats_and_dashboard_with_enum_detections(client, admin_user, normal_user, app):
+    from app.models import EncroachmentDetection, ReviewStatus, Case, Complaint
+
+    with app.app_context():
+        p = LandParcel(parcel_id="STAT-TEST-001", registered_area_sqm=250.0, is_flagged=True)
+        db.session.add(p)
+        db.session.flush()
+
+        d_pending = EncroachmentDetection(
+            parcel_id=p.id,
+            detection_reason="Area mismatch detected",
+            review_status=ReviewStatus.PENDING,
+            severity="High",
+        )
+        d_resolved = EncroachmentDetection(
+            parcel_id=p.id,
+            detection_reason="Cleared check",
+            review_status=ReviewStatus.RESOLVED,
+            severity="Low",
+        )
+        c_open = Case(case_number="LG-2026-999001", title="Test Case", parcel_id=p.id, status="Reported")
+        comp_open = Complaint(
+            ack_number="COMP-TEST0001", complainant_name="Citizen", description="Check overlap", status="Submitted"
+        )
+        db.session.add_all([d_pending, d_resolved, c_open, comp_open])
+        db.session.commit()
+
+        admin_tok = generate_token(admin_user.id, admin_user.role.value)
+        user_tok = generate_token(normal_user.id, normal_user.role.value)
+
+        r_stats = client.get("/api/admin/stats", headers={"Authorization": f"Bearer {user_tok}"})
+        assert r_stats.status_code == 200
+        body = r_stats.get_json()
+        assert body["parcels"] == {"total": 1, "flagged": 1}
+        assert body["detections"] == {"total": 2, "pending": 1}
+        assert body["cases"] == {"total": 1, "open": 1}
+        assert body["complaints"] == {"total": 1, "open": 1}
+
+        r_dash = client.get("/api/admin/dashboard", headers={"Authorization": f"Bearer {admin_tok}"})
+        assert r_dash.status_code == 200
+        dbody = r_dash.get_json()
+        assert dbody["detections"]["pending"] == 1

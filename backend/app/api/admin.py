@@ -1,9 +1,12 @@
 """
 Admin API Blueprint — /api/admin
 """
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from app import db
-from app.models import User, UserRole, UserStatus, AuditLog, LandParcel, EncroachmentDetection, Dataset
+from app.models import (
+    User, UserRole, UserStatus, AuditLog, LandParcel,
+    EncroachmentDetection, Dataset, ReviewStatus
+)
 from app.utils.auth import admin_required, login_required
 from app.utils.audit import log_action
 
@@ -18,7 +21,7 @@ def dashboard():
     flagged_parcels = LandParcel.query.filter_by(is_flagged=True).count()
     total_detections = EncroachmentDetection.query.count()
     pending_detections = EncroachmentDetection.query.filter_by(
-        review_status="Pending Review"
+        review_status=ReviewStatus.PENDING
     ).count()
     total_users = User.query.count()
     active_users = User.query.filter_by(status=UserStatus.ACTIVE).count()
@@ -36,7 +39,7 @@ def dashboard():
     sev_counts = db.session.query(
         EncroachmentDetection.severity, func.count(EncroachmentDetection.id)
     ).group_by(EncroachmentDetection.severity).all()
-    severity_stats = {k: v for k, v in sev_counts}
+    severity_stats = {(k or "Unknown"): v for k, v in sev_counts}
 
     # Recent activity
     recent_logs = AuditLog.query.order_by(AuditLog.timestamp.desc()).limit(10).all()
@@ -302,28 +305,38 @@ def list_staff():
 def stats():
     """Extended stats including cases and complaints. Available to all authenticated users."""
     from app.models import Case, Complaint
-    from sqlalchemy import func
 
-    total_parcels    = LandParcel.query.count()
-    flagged_parcels  = LandParcel.query.filter_by(is_flagged=True).count()
-    total_detections = EncroachmentDetection.query.count()
-    pending_detect   = EncroachmentDetection.query.filter_by(
-        review_status="Pending Review"
-    ).count()
+    try:
+        total_parcels = LandParcel.query.count()
+        flagged_parcels = LandParcel.query.filter_by(is_flagged=True).count()
+        total_detections = EncroachmentDetection.query.count()
+        pending_detect = EncroachmentDetection.query.filter_by(
+            review_status=ReviewStatus.PENDING
+        ).count()
 
-    total_cases      = Case.query.count()
-    open_cases       = Case.query.filter(
-        Case.status.notin_(["Resolved", "Referred for Appeal"])
-    ).count()
-    total_complaints = Complaint.query.count()
-    open_complaints  = Complaint.query.filter(
-        Complaint.status.notin_(["Resolved", "Rejected"])
-    ).count()
+        total_cases = Case.query.count()
+        open_cases = Case.query.filter(
+            db.or_(
+                Case.status.notin_(["Resolved", "Referred for Appeal"]),
+                Case.status.is_(None),
+            )
+        ).count()
+        total_complaints = Complaint.query.count()
+        open_complaints = Complaint.query.filter(
+            db.or_(
+                Complaint.status.notin_(["Resolved", "Rejected"]),
+                Complaint.status.is_(None),
+            )
+        ).count()
 
-    return jsonify({
-        "parcels":    {"total": total_parcels,    "flagged": flagged_parcels},
-        "detections": {"total": total_detections, "pending": pending_detect},
-        "cases":      {"total": total_cases,      "open": open_cases},
-        "complaints": {"total": total_complaints, "open": open_complaints},
-    })
+        return jsonify({
+            "parcels":    {"total": total_parcels,    "flagged": flagged_parcels},
+            "detections": {"total": total_detections, "pending": pending_detect},
+            "cases":      {"total": total_cases,      "open": open_cases},
+            "complaints": {"total": total_complaints, "open": open_complaints},
+        })
+    except Exception as exc:
+        db.session.rollback()
+        current_app.logger.exception("Error computing /api/admin/stats: %s", exc)
+        return jsonify({"error": "Failed to compute admin statistics."}), 500
 

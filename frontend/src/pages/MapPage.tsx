@@ -320,7 +320,7 @@ export default function MapPage() {
               </div>
             </div>
           }>
-            <div className="flex-1 rounded-xl overflow-hidden border border-slate-200/80">
+            <div className="flex-1 h-full min-h-[420px] rounded-xl overflow-hidden border border-slate-200/80">
               <Map3DView
                 parcels={filteredParcels}
                 detections={detections}
